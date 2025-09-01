@@ -1,44 +1,62 @@
-// Initialize CodeMirror editor
+// Initialize CodeMirror editor with dark theme
 const editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
     mode: 'lua',
     theme: 'monokai',
     lineNumbers: true,
-    autoCloseBrackets: true
+    autoCloseBrackets: true,
+    viewportMargin: Infinity
 });
 
-// Fetch scripts from ScriptBlox API
-async function fetchScripts() {
+let currentPage = 1;
+const maxPerPage = 20;
+
+// Fetch scripts from ScriptBlox API using a CORS proxy
+async function fetchScripts(page = 1) {
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('script-grid').innerHTML = '';
     try {
-        const response = await fetch('https://scriptblox.com/api/script/fetch?page=1');
+        const apiUrl = `https://scriptblox.com/api/script/fetch?page=${page}&max=${maxPerPage}`;
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
+        const response = await fetch(proxyUrl);
+        if (!response.ok) throw new Error('API response not OK');
         const data = await response.json();
-        const scripts = data.scripts || [];
+        const scripts = data.result.scripts || [];
         const scriptGrid = document.getElementById('script-grid');
 
-        // Clear existing content
-        scriptGrid.innerHTML = '';
-
-        // Create script cards
         scripts.forEach(script => {
-            const card = document.createElement('div');
-            card.className = 'script-card';
-            card.innerHTML = `
-                <h3>${script.title || 'Untitled Script'}</h3>
-                <p>${script.description || 'No description available.'}</p>
-                <button onclick="viewScript('${script._id}')">View</button>
-                <button onclick="downloadScript('${script._id}')">Download</button>
+            const col = document.createElement('div');
+            col.className = 'col-md-4 mb-4';
+            col.innerHTML = `
+                <div class="card script-card">
+                    <div class="card-body">
+                        <h5 class="card-title">${script.title || 'Untitled Script'}</h5>
+                        <p class="card-text">${script.description || 'No description available.'}</p>
+                        <button class="btn btn-primary me-2" onclick="viewScript('${script._id}')">View</button>
+                        <button class="btn btn-success" onclick="downloadScript('${script._id}')">Download</button>
+                    </div>
+                </div>
             `;
-            scriptGrid.appendChild(card);
+            scriptGrid.appendChild(col);
         });
+
+        document.getElementById('page-info').textContent = `Page ${page}`;
+        document.getElementById('prev-page').disabled = page === 1;
+        document.getElementById('next-page').disabled = scripts.length < maxPerPage;
     } catch (error) {
         console.error('Error fetching scripts:', error);
-        alert('Failed to load scripts from ScriptBlox API.');
+        alert('Failed to load scripts. The API might be temporarily unavailable or check your connection.');
+    } finally {
+        document.getElementById('loading').style.display = 'none';
     }
 }
 
 // View script in editor
 async function viewScript(scriptId) {
     try {
-        const response = await fetch(`https://scriptblox.com/api/script/fetch/${scriptId}`);
+        const apiUrl = `https://scriptblox.com/api/script/fetch/${scriptId}`;
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
+        const response = await fetch(proxyUrl);
+        if (!response.ok) throw new Error('API response not OK');
         const data = await response.json();
         if (data.script && data.script.script) {
             editor.setValue(data.script.script);
@@ -54,7 +72,10 @@ async function viewScript(scriptId) {
 // Download script
 async function downloadScript(scriptId) {
     try {
-        const response = await fetch(`https://scriptblox.com/api/script/fetch/${scriptId}`);
+        const apiUrl = `https://scriptblox.com/api/script/fetch/${scriptId}`;
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
+        const response = await fetch(proxyUrl);
+        if (!response.ok) throw new Error('API response not OK');
         const data = await response.json();
         if (data.script && data.script.script) {
             const blob = new Blob([data.script.script], { type: 'text/plain' });
@@ -73,14 +94,14 @@ async function downloadScript(scriptId) {
     }
 }
 
-// Save custom script (placeholder for server-side storage)
+// Save custom script (placeholder)
 function saveScript() {
     const scriptContent = editor.getValue();
     console.log('Saving script:', scriptContent);
     alert('Script saved! (Placeholder - requires backend storage)');
 }
 
-// Download custom script from editor
+// Download custom script
 function downloadCustomScript() {
     const scriptContent = editor.getValue();
     const blob = new Blob([scriptContent], { type: 'text/plain' });
@@ -92,5 +113,18 @@ function downloadCustomScript() {
     URL.revokeObjectURL(url);
 }
 
+// Pagination handlers
+document.getElementById('next-page').addEventListener('click', () => {
+    currentPage++;
+    fetchScripts(currentPage);
+});
+
+document.getElementById('prev-page').addEventListener('click', () => {
+    if (currentPage > 1) {
+        currentPage--;
+        fetchScripts(currentPage);
+    }
+});
+
 // Load scripts on page load
-window.onload = fetchScripts;
+window.onload = () => fetchScripts(1);
