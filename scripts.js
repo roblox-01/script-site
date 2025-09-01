@@ -56,7 +56,7 @@ async function fetchScripts(page = 1) {
 
     try {
         console.log(`Fetching scripts for page ${page}...`);
-        const apiUrl = `https://scriptblox.com/api/script/fetch?page=${page}&max=${maxPerPage}`;
+        const apiUrl = `https://rscripts.net/api/v2/scripts?page=1&orderBy=date&sort=desc`;
         const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
         const response = await fetch(proxyUrl, { mode: 'cors' });
         if (!response.ok) {
