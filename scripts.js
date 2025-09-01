@@ -1,8 +1,11 @@
-// Fallback dataset for scripts (ScriptBlox API may fail due to CORS)
+// Expanded fallback dataset for scripts
 const fallbackScripts = [
     { _id: '1', title: 'Auto Farm Script', description: 'Automate farming in Roblox games.', script: `-- Auto Farm Script\nlocal player = game.Players.LocalPlayer\nwhile true do\n    wait(1)\n    player.Character.Humanoid.WalkSpeed = 100\n    print("Farming...")\nend` },
     { _id: '2', title: 'ESP Script', description: 'See players through walls.', script: `-- ESP Script\nlocal esp = loadstring(game:HttpGet("https://example.com/esp.lua"))()\nesp:Toggle(true)` },
-    { _id: '3', title: 'Teleport Hack', description: 'Teleport across the map.', script: `-- Teleport Script\nlocal player = game.Players.LocalPlayer\nplayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, 100, 0)` }
+    { _id: '3', title: 'Teleport Hack', description: 'Teleport across the map.', script: `-- Teleport Script\nlocal player = game.Players.LocalPlayer\nplayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, 100, 0)` },
+    { _id: '4', title: 'Speed Boost', description: 'Increase your movement speed.', script: `-- Speed Boost\nlocal player = game.Players.LocalPlayer\nplayer.Character.Humanoid.WalkSpeed = 50` },
+    { _id: '5', title: 'Infinite Jump', description: 'Jump endlessly in any game.', script: `-- Infinite Jump\nlocal player = game.Players.LocalPlayer\nUserInputService.JumpRequest:Connect(function()\n    player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)\nend)` },
+    { _id: '6', title: 'Fly Hack', description: 'Fly around the map.', script: `-- Fly Hack\nlocal player = game.Players.LocalPlayer\nplayer.Character.HumanoidRootPart.Anchored = false\nplayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Flying)` }
 ];
 
 let currentPage = 1;
@@ -46,21 +49,33 @@ animateParticles();
 async function fetchScripts(page = 1) {
     const loading = document.getElementById('loading');
     const scriptGrid = document.getElementById('script-grid');
+    const errorMessage = document.getElementById('error-message');
     loading.style.display = 'block';
     scriptGrid.innerHTML = '';
+    errorMessage.classList.add('hidden');
 
     try {
+        console.log(`Fetching scripts for page ${page}...`);
         const apiUrl = `https://scriptblox.com/api/script/fetch?page=${page}&max=${maxPerPage}`;
         const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
-        const response = await fetch(proxyUrl);
-        if (!response.ok) throw new Error('API response not OK');
+        const response = await fetch(proxyUrl, { mode: 'cors' });
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
         const data = await response.json();
-        const scripts = data.result.scripts || [];
+        console.log('API Response:', data);
+        const scripts = data.result?.scripts || [];
+        if (scripts.length === 0) {
+            throw new Error('No scripts returned from API');
+        }
         renderScripts(scripts, page);
     } catch (error) {
-        console.error('API Error, using fallback:', error);
+        console.error('Error fetching scripts:', error);
+        errorMessage.textContent = 'Failed to load scripts from ScriptBlox. Showing fallback scripts.';
+        errorMessage.classList.remove('hidden');
         const start = (page - 1) * maxPerPage;
         const paginatedScripts = fallbackScripts.slice(start, start + maxPerPage);
+        console.log('Using fallback scripts:', paginatedScripts);
         renderScripts(paginatedScripts, page);
     } finally {
         loading.style.display = 'none';
@@ -70,6 +85,13 @@ async function fetchScripts(page = 1) {
 // Render scripts with GSAP animations
 function renderScripts(scripts, page) {
     const scriptGrid = document.getElementById('script-grid');
+    console.log('Rendering scripts:', scripts);
+    if (!scripts || scripts.length === 0) {
+        scriptGrid.innerHTML = '<p class="text-center text-red-400">No scripts available for this page.</p>';
+        document.getElementById('next-page').disabled = true;
+        return;
+    }
+
     scripts.forEach((script, index) => {
         const card = document.createElement('div');
         card.className = 'script-card p-8';
@@ -98,6 +120,7 @@ function renderScripts(scripts, page) {
 
 // View script
 async function viewScript(scriptId) {
+    console.log(`Viewing script ID: ${scriptId}`);
     const script = fallbackScripts.find(s => s._id === scriptId) || { script: '' };
     editor.setValue(script.script || '-- Script not found');
     gsap.from('.CodeMirror', { opacity: 0, scale: 0.95, duration: 0.5 });
@@ -105,6 +128,7 @@ async function viewScript(scriptId) {
 
 // Download script
 function downloadScript(scriptId) {
+    console.log(`Downloading script ID: ${scriptId}`);
     const script = fallbackScripts.find(s => s._id === scriptId) || { script: '', title: 'script' };
     const blob = new Blob([script.script], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -125,6 +149,7 @@ function saveScript() {
 // Download custom script
 function downloadCustomScript() {
     const scriptContent = editor.getValue();
+    console.log('Downloading custom script');
     const blob = new Blob([scriptContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -137,15 +162,20 @@ function downloadCustomScript() {
 // Pagination handlers
 document.getElementById('next-page').addEventListener('click', () => {
     currentPage++;
+    console.log(`Navigating to page ${currentPage}`);
     fetchScripts(currentPage);
 });
 
 document.getElementById('prev-page').addEventListener('click', () => {
     if (currentPage > 1) {
         currentPage--;
+        console.log(`Navigating to page ${currentPage}`);
         fetchScripts(currentPage);
     }
 });
 
 // Load scripts on page load
-window.onload = () => fetchScripts(1);
+window.onload = () => {
+    console.log('Page loaded, fetching scripts...');
+    fetchScripts(1);
+};
