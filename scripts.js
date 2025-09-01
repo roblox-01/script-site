@@ -1,4 +1,4 @@
-// Fallback dataset for scripts (since ScriptBlox API may not work client-side)
+// Fallback dataset for scripts (ScriptBlox API may fail due to CORS)
 const fallbackScripts = [
     { _id: '1', title: 'Auto Farm Script', description: 'Automate farming in Roblox games.', script: `-- Auto Farm Script\nlocal player = game.Players.LocalPlayer\nwhile true do\n    wait(1)\n    player.Character.Humanoid.WalkSpeed = 100\n    print("Farming...")\nend` },
     { _id: '2', title: 'ESP Script', description: 'See players through walls.', script: `-- ESP Script\nlocal esp = loadstring(game:HttpGet("https://example.com/esp.lua"))()\nesp:Toggle(true)` },
@@ -8,7 +8,7 @@ const fallbackScripts = [
 let currentPage = 1;
 const maxPerPage = 6;
 
-// Initialize CodeMirror editor
+// Initialize CodeMirror
 const editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
     mode: 'lua',
     theme: 'monokai',
@@ -17,7 +17,32 @@ const editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
     viewportMargin: Infinity
 });
 
-// Fetch scripts (try API, fallback to local data)
+// Three.js particle background
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+camera.position.z = 30;
+
+const particles = new THREE.BufferGeometry();
+const particleCount = 1000;
+const posArray = new Float32Array(particleCount * 3);
+for (let i = 0; i < particleCount * 3; i++) {
+    posArray[i] = (Math.random() - 0.5) * 100;
+}
+particles.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+const material = new THREE.PointsMaterial({ color: 0x00f6ff, size: 0.2 });
+const particleSystem = new THREE.Points(particles, material);
+scene.add(particleSystem);
+
+function animateParticles() {
+    particleSystem.rotation.y += 0.002;
+    renderer.render(scene, camera);
+    requestAnimationFrame(animateParticles);
+}
+animateParticles();
+
+// Fetch scripts
 async function fetchScripts(page = 1) {
     const loading = document.getElementById('loading');
     const scriptGrid = document.getElementById('script-grid');
@@ -31,7 +56,6 @@ async function fetchScripts(page = 1) {
         if (!response.ok) throw new Error('API response not OK');
         const data = await response.json();
         const scripts = data.result.scripts || [];
-        
         renderScripts(scripts, page);
     } catch (error) {
         console.error('API Error, using fallback:', error);
@@ -43,36 +67,27 @@ async function fetchScripts(page = 1) {
     }
 }
 
-// Render scripts to grid with animations
+// Render scripts with GSAP animations
 function renderScripts(scripts, page) {
     const scriptGrid = document.getElementById('script-grid');
     scripts.forEach((script, index) => {
         const card = document.createElement('div');
-        card.className = 'script-card p-6 rounded-lg';
+        card.className = 'script-card p-8';
         card.innerHTML = `
-            <h3 class="text-xl font-bold mb-2">${script.title || 'Untitled Script'}</h3>
+            <h3 class="text-2xl font-bold mb-3 glitch">${script.title || 'Untitled Script'}</h3>
             <p class="text-gray-400 mb-4">${script.description || 'No description available.'}</p>
-            <button class="bg-cyan-500 text-gray-900 py-2 px-4 rounded-lg mr-2 hover:bg-cyan-400" onclick="viewScript('${script._id}')">View</button>
-            <button class="bg-green-500 text-gray-900 py-2 px-4 rounded-lg hover:bg-green-400" onclick="downloadScript('${script._id}')">Download</button>
+            <button class="bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-2 px-6 rounded-lg mr-2 hover:scale-105 transition" onclick="viewScript('${script._id}')">View</button>
+            <button class="bg-gradient-to-r from-green-600 to-teal-500 text-white py-2 px-6 rounded-lg hover:scale-105 transition" onclick="downloadScript('${script._id}')">Download</button>
         `;
         scriptGrid.appendChild(card);
 
-        // Anime.js hover animation
+        // GSAP hover animation
+        gsap.from(card, { opacity: 0, y: 50, duration: 0.5, delay: index * 0.1 });
         card.addEventListener('mouseenter', () => {
-            anime({
-                targets: card,
-                scale: 1.05,
-                rotateX: 5,
-                duration: 300,
-                easing: 'easeOutQuad'
-            });
+            gsap.to(card, { scale: 1.05, rotateX: 10, duration: 0.3, ease: 'power2.out' });
         });
         card.addEventListener('mouseleave', () => {
-            anime({
-                targets: card,
-                scale: 1,
-                rotateX: 0,
-            });
+            gsap.to(card, { scale: 1, rotateX: 0, duration: 0.3 });
         });
     });
 
@@ -81,10 +96,11 @@ function renderScripts(scripts, page) {
     document.getElementById('next-page').disabled = scripts.length < maxPerPage;
 }
 
-// View script in editor
+// View script
 async function viewScript(scriptId) {
     const script = fallbackScripts.find(s => s._id === scriptId) || { script: '' };
     editor.setValue(script.script || '-- Script not found');
+    gsap.from('.CodeMirror', { opacity: 0, scale: 0.95, duration: 0.5 });
 }
 
 // Download script
