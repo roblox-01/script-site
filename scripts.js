@@ -9,7 +9,7 @@ const fallbackScripts = [
 ];
 
 let currentPage = 1;
-const maxPerPage = 6;
+const maxPerPage = 10; // Adjusted to match typical API page size based on sample data
 
 // Initialize CodeMirror
 const editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
@@ -56,7 +56,7 @@ async function fetchScripts(page = 1) {
 
     try {
         console.log(`Fetching scripts for page ${page}...`);
-        const apiUrl = `https://rscripts.net/api/v2/scripts?page=1&orderBy=date&sort=desc`;
+        const apiUrl = `https://rscripts.net/api/v2/scripts?page=${page}&orderBy=date&sort=desc`;
         const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
         const response = await fetch(proxyUrl, { mode: 'cors' });
         if (!response.ok) {
@@ -64,11 +64,12 @@ async function fetchScripts(page = 1) {
         }
         const data = await response.json();
         console.log('API Response:', data);
-        const scripts = data.result?.scripts || [];
+        const scripts = data.scripts || [];
+        const maxPages = data.info?.maxPages || 1;
         if (scripts.length === 0) {
             throw new Error('No scripts returned from API');
         }
-        renderScripts(scripts, page);
+        renderScripts(scripts.slice(0, maxPerPage), page, maxPages); // Slice if API returns more than maxPerPage
     } catch (error) {
         console.error('Error fetching scripts:', error);
         errorMessage.textContent = 'Failed to load scripts from ScriptBlox. Showing fallback scripts.';
@@ -76,14 +77,14 @@ async function fetchScripts(page = 1) {
         const start = (page - 1) * maxPerPage;
         const paginatedScripts = fallbackScripts.slice(start, start + maxPerPage);
         console.log('Using fallback scripts:', paginatedScripts);
-        renderScripts(paginatedScripts, page);
+        renderScripts(paginatedScripts, page, Infinity); // Fallback has no max pages limit
     } finally {
         loading.style.display = 'none';
     }
 }
 
 // Render scripts with GSAP animations
-function renderScripts(scripts, page) {
+function renderScripts(scripts, page, maxPages) {
     const scriptGrid = document.getElementById('script-grid');
     console.log('Rendering scripts:', scripts);
     if (!scripts || scripts.length === 0) {
@@ -98,8 +99,8 @@ function renderScripts(scripts, page) {
         card.innerHTML = `
             <h3 class="text-2xl font-bold mb-3 glitch">${script.title || 'Untitled Script'}</h3>
             <p class="text-gray-400 mb-4">${script.description || 'No description available.'}</p>
-            <button class="bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-2 px-6 rounded-lg mr-2 hover:scale-105 transition" onclick="viewScript('${script._id}')">View</button>
-            <button class="bg-gradient-to-r from-green-600 to-teal-500 text-white py-2 px-6 rounded-lg hover:scale-105 transition" onclick="downloadScript('${script._id}')">Download</button>
+            <button class="bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-2 px-6 rounded-lg mr-2 hover:scale-105 transition" onclick="viewScript('${script._id}', '${script.rawScript || ''}')">View</button>
+            <button class="bg-gradient-to-r from-green-600 to-teal-500 text-white py-2 px-6 rounded-lg hover:scale-105 transition" onclick="downloadScript('${script._id}', '${script.rawScript || ''}', '${script.title || 'script'}')">Download</button>
         `;
         scriptGrid.appendChild(card);
 
@@ -115,26 +116,65 @@ function renderScripts(scripts, page) {
 
     document.getElementById('page-info').textContent = `Page ${page}`;
     document.getElementById('prev-page').disabled = page === 1;
-    document.getElementById('next-page').disabled = scripts.length < maxPerPage;
+    document.getElementById('next-page').disabled = page >= maxPages || scripts.length < maxPerPage;
 }
 
 // View script
-async function viewScript(scriptId) {
+async function viewScript(scriptId, rawScriptUrl) {
     console.log(`Viewing script ID: ${scriptId}`);
-    const script = fallbackScripts.find(s => s._id === scriptId) || { script: '' };
-    editor.setValue(script.script || '-- Script not found');
+    let scriptContent = '';
+    if (rawScriptUrl) {
+        // Fetch from API rawScript URL
+        try {
+            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(rawScriptUrl)}`;
+            const response = await fetch(proxyUrl);
+            if (response.ok) {
+                scriptContent = await response.text();
+            } else {
+                console.error('Failed to fetch script content');
+            }
+        } catch (error) {
+            console.error('Error fetching script:', error);
+        }
+    } else {
+        // Fallback
+        const script = fallbackScripts.find(s => s._id === scriptId) || { script: '' };
+        scriptContent = script.script || '-- Script not found';
+    }
+    editor.setValue(scriptContent);
     gsap.from('.CodeMirror', { opacity: 0, scale: 0.95, duration: 0.5 });
 }
 
 // Download script
-function downloadScript(scriptId) {
+async function downloadScript(scriptId, rawScriptUrl, title) {
     console.log(`Downloading script ID: ${scriptId}`);
-    const script = fallbackScripts.find(s => s._id === scriptId) || { script: '', title: 'script' };
-    const blob = new Blob([script.script], { type: 'text/plain' });
+    let scriptContent = '';
+    if (rawScriptUrl) {
+        // Fetch from API rawScript URL
+        try {
+            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(rawScriptUrl)}`;
+            const response = await fetch(proxyUrl);
+            if (response.ok) {
+                scriptContent = await response.text();
+            } else {
+                console.error('Failed to fetch script content');
+                return;
+            }
+        } catch (error) {
+            console.error('Error fetching script:', error);
+            return;
+        }
+    } else {
+        // Fallback
+        const script = fallbackScripts.find(s => s._id === scriptId) || { script: '' };
+        scriptContent = script.script;
+        title = script.title || 'script';
+    }
+    const blob = new Blob([scriptContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${script.title || 'script'}.lua`;
+    a.download = `${title}.lua`;
     a.click();
     URL.revokeObjectURL(url);
 }
