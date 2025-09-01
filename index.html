@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TheScriptSite - Roblox Scripts Hub</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="codemirror/lib/codemirror.css">
+</head>
+<body>
+    <header>
+        <h1>TheScriptSite</h1>
+        <p>Your hub for Roblox scripts with a cool GUI! Powered by ScriptBlox.com</p>
+        <a href="https://discord.gg/your-discord-invite" target="_blank" class="discord-btn">Join My Discord</a>
+    </header>
+
+    <section id="scripts">
+        <h2>Featured Scripts</h2>
+        <div class="script-grid" id="script-grid"></div>
+    </section>
+
+    <section id="create">
+        <h2>Create Your Script</h2>
+        <textarea id="code-editor"></textarea>
+        <button onclick="saveScript()">Save Script</button>
+        <button onclick="downloadCustomScript()">Download Script</button>
+    </section>
+
+    <section id="tutorials">
+        <h2>Tutorials</h2>
+        <p>Learn how to download and use Roblox executors:</p>
+        <ul>
+            <li><a href="https://www.youtube.com/watch?v=delta-tutorial-placeholder" target="_blank">How to Download Delta Executor</a></li>
+            <li><a href="https://www.youtube.com/watch?v=xeno-tutorial-placeholder" target="_blank">How to Download Xeno Executor</a></li>
+        </ul>
+    </section>
+
+    <script src="codemirror/lib/codemirror.js"></script>
+    <script src="codemirror/mode/lua/lua.js"></script>
+    <script src="scripts.js"></script>
+</body>
+</html>
