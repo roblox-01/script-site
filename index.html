@@ -3,81 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TheScriptSite - Epic Roblox Scripts Hub</title>
+    <title>TheScriptSite - Next-Gen Roblox Scripts Hub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="codemirror/lib/codemirror.css">
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-gray-900 text-white">
-    <nav class="bg-gray-800 shadow-lg sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <a href="#" class="text-2xl font-bold text-cyan-400 neon-glow">TheScriptSite</a>
-            <div class="space-x-6">
-                <a href="#scripts" class="text-gray-300 hover:text-cyan-400 transition">Scripts</a>
-                <a href="#create" class="text-gray-300 hover:text-cyan-400 transition">Create</a>
-                <a href="#tutorials" class="text-gray-300 hover:text-cyan-400 transition">Tutorials</a>
-                <a href="#owner" class="text-gray-300 hover:text-cyan-400 transition">Owner</a>
+<body class="bg-black text-white overflow-x-hidden">
+    <canvas id="bg-canvas" class="fixed top-0 left-0 w-full h-full -z-10"></canvas>
+
+    <nav class="bg-opacity-80 bg-gray-900 sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="#" class="text-3xl font-extrabold glitch">TheScriptSite</a>
+            <div class="space-x-8">
+                <a href="#scripts" class="text-gray-300 hover:text-cyan-400 transition glitch-hover">Scripts</a>
+                <a href="#create" class="text-gray-300 hover:text-cyan-400 transition glitch-hover">Create</a>
+                <a href="#tutorials" class="text-gray-300 hover:text-cyan-400 transition glitch-hover">Tutorials</a>
+                <a href="#owner" class="text-gray-300 hover:text-cyan-400 transition glitch-hover">Owner</a>
             </div>
         </div>
     </nav>
 
-    <header class="bg-gradient-to-r from-purple-600 to-cyan-500 text-center py-16">
-        <h1 class="text-5xl font-extrabold neon-glow">TheScriptSite</h1>
-        <p class="text-xl mt-4">Your ultimate Roblox scripts hub with a killer GUI! Powered by <a href="https://scriptblox.com" target="_blank" class="underline text-cyan-300">ScriptBlox.com</a></p>
-        <a href="https://discord.gg/your-discord-invite" target="_blank" class="mt-6 inline-block bg-cyan-500 text-gray-900 py-3 px-6 rounded-lg font-bold hover:bg-cyan-400 transition discord-btn">
-            <i class="fab fa-discord mr-2"></i>Join My Discord
-        </a>
+    <header class="relative text-center py-24">
+        <div class="container mx-auto">
+            <h1 class="text-6xl font-extrabold glitch mb-4">TheScriptSite</h1>
+            <p class="text-2xl mb-6">Your AI-powered Roblox scripts hub, crafted with next-gen flair. Powered by <a href="https://scriptblox.com" target="_blank" class="underline text-cyan-300">ScriptBlox.com</a></p>
+            <a href="https://discord.gg/your-discord-invite" target="_blank" class="inline-block bg-gradient-to-r from-cyan-500 to-purple-500 text-white py-3 px-8 rounded-lg font-bold hover:scale-105 transition discord-btn">
+                <i class="fab fa-discord mr-2"></i>Join anoob0970's Discord
+            </a>
+        </div>
     </header>
 
-    <section id="scripts" class="container mx-auto my-12">
-        <h2 class="text-3xl font-bold text-center mb-8 neon-glow">Featured Scripts</h2>
-        <div id="loading" class="text-center"><i class="fas fa-spinner fa-spin text-4xl text-cyan-400"></i></div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 script-grid" id="script-grid"></div>
-        <div class="text-center mt-8">
-            <button id="prev-page" class="bg-gray-700 text-white py-2 px-4 rounded-lg mr-2 hover:bg-gray-600" disabled>Previous</button>
-            <span id="page-info" class="text-lg">Page 1</span>
-            <button id="next-page" class="bg-gray-700 text-white py-2 px-4 rounded-lg ml-2 hover:bg-gray-600">Next</button>
+    <section id="scripts" class="container mx-auto my-16 relative">
+        <h2 class="text-4xl font-bold text-center mb-12 glitch">Featured Scripts</h2>
+        <div id="loading" class="text-center"><i class="fas fa-spinner fa-spin text-5xl text-cyan-400"></i></div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 script-grid" id="script-grid"></div>
+        <div class="text-center mt-12">
+            <button id="prev-page" class="bg-gray-800 text-white py-3 px-6 rounded-lg mr-4 hover:bg-cyan-600 transition" disabled>Previous</button>
+            <span id="page-info" class="text-xl glitch">Page 1</span>
+            <button id="next-page" class="bg-gray-800 text-white py-3 px-6 rounded-lg ml-4 hover:bg-cyan-600 transition">Next</button>
         </div>
     </section>
 
-    <section id="create" class="container mx-auto my-12 bg-gray-800 p-8 rounded-lg shadow-lg">
-        <h2 class="text-3xl font-bold text-center mb-8 neon-glow">Create Your Script</h2>
-        <textarea id="code-editor" class="w-full rounded"></textarea>
-        <div class="text-center mt-4">
-            <button class="bg-purple-600 text-white py-2 px-6 rounded-lg mr-2 hover:bg-purple-500" onclick="saveScript()">Save Script</button>
-            <button class="bg-green-600 text-white py-2 px-6 rounded-lg hover:bg-green-500" onclick="downloadCustomScript()">Download Script</button>
+    <section id="create" class="container mx-auto my-16 bg-opacity-90 bg-gray-900 p-10 rounded-2xl">
+        <h2 class="text-4xl font-bold text-center mb-12 glitch">Create Your Script</h2>
+        <textarea id="code-editor" class="w-full rounded-2xl"></textarea>
+        <div class="text-center mt-6">
+            <button class="bg-gradient-to-r from-purple-600 to-cyan-500 text-white py-3 px-8 rounded-lg mr-4 hover:scale-105 transition" onclick="saveScript()">Save Script</button>
+            <button class="bg-gradient-to-r from-green-600 to-teal-500 text-white py-3 px-8 rounded-lg hover:scale-105 transition" onclick="downloadCustomScript()">Download Script</button>
         </div>
     </section>
 
-    <section id="tutorials" class="container mx-auto my-12">
-        <h2 class="text-3xl font-bold text-center mb-8 neon-glow">Tutorials</h2>
-        <p class="text-center mb-4">Learn how to download and use Roblox executors:</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <a href="https://www.youtube.com/watch?v=delta-tutorial-placeholder" target="_blank" class="bg-gray-700 p-4 rounded-lg hover:bg-gray-600 transition">
-                <h3 class="text-xl font-bold">Delta Executor Tutorial</h3>
+    <section id="tutorials" class="container mx-auto my-16">
+        <h2 class="text-4xl font-bold text-center mb-12 glitch">Tutorials</h2>
+        <p class="text-center mb-6 text-lg">Master Roblox executors with these guides:</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <a href="https://www.youtube.com/watch?v=delta-tutorial-placeholder" target="_blank" class="bg-gray-800 p-6 rounded-lg hover:bg-gray-700 transition script-card">
+                <h3 class="text-2xl font-bold mb-2">Delta Executor Tutorial</h3>
                 <p>Step-by-step guide to download and use Delta Executor.</p>
             </a>
-            <a href="https://www.youtube.com/watch?v=xeno-tutorial-placeholder" target="_blank" class="bg-gray-700 p-4 rounded-lg hover:bg-gray-600 transition">
-                <h3 class="text-xl font-bold">Xeno Executor Tutorial</h3>
+            <a href="https://www.youtube.com/watch?v=xeno-tutorial-placeholder" target="_blank" class="bg-gray-800 p-6 rounded-lg hover:bg-gray-700 transition script-card">
+                <h3 class="text-2xl font-bold mb-2">Xeno Executor Tutorial</h3>
                 <p>Learn how to set up Xeno Executor for your scripts.</p>
             </a>
         </div>
     </section>
 
-    <section id="owner" class="container mx-auto my-12 bg-gradient-to-r from-purple-600 to-cyan-500 p-8 rounded-lg shadow-lg text-center">
-        <h2 class="text-3xl font-bold mb-4 neon-glow">Site Owner</h2>
-        <p class="text-lg">TheScriptSite is proudly owned and developed by <span class="font-bold text-cyan-300">ShadowT3ch</span>. Join the Discord for updates and support!</p>
+    <section id="owner" class="container mx-auto my-16 bg-gradient-to-r from-purple-600 to-cyan-500 p-10 rounded-2xl text-center">
+        <h2 class="text-4xl font-bold mb-6 glitch">Site Owner</h2>
+        <p class="text-xl">TheScriptSite is crafted by <span class="font-extrabold text-cyan-300 glitch">anoob0970</span>, the mastermind behind this AI-powered hub. Join the Discord for epic updates!</p>
     </section>
 
-    <footer class="bg-gray-800 text-center py-6">
-        <p class="text-gray-300">Site developed by <span class="font-bold text-cyan-400">ShadowT3ch</span></p>
-        <a href="https://discord.gg/your-discord-invite" target="_blank" class="text-cyan-400 mt-2 inline-block">
-            <i class="fab fa-discord fa-2x hover:text-cyan-300 transition"></i>
+    <footer class="bg-gray-900 text-center py-8 relative">
+        <a href="https://discord.gg/your-discord-invite" target="_blank" class="mt-4 inline-block">
+            <i class="fab fa-discord fa-3x text-cyan-400 hover:text-cyan-300 transition"></i>
         </a>
+        <a href="http://ShadowT3ch.site" target="_blank" class="watermark fixed bottom-4 right-4 text-sm text-cyan-400 glitch-hover">ShadowT3ch</a>
     </footer>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
     <script src="codemirror/lib/codemirror.js"></script>
     <script src="codemirror/mode/lua/lua.js"></script>
     <script src="scripts.js"></script>
