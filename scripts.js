@@ -113,14 +113,18 @@ function initializeCodeMirror(attempts = 5, delay = 500) {
                 indentUnit: 4,
                 indentWithTabs: true,
                 extraKeys: { 'Ctrl-Space': 'autocomplete' },
-                readOnly: false, // Ensure editor is editable
-                autofocus: true // Auto-focus to allow typing
+                readOnly: false,
+                autofocus: true,
+                lineWrapping: true // Ensure text wraps for usability
             });
             // Load saved script
             const savedScript = localStorage.getItem('customScript');
             if (savedScript) editor.setValue(savedScript);
-            // Ensure editor is editable
-            editor.getWrapperElement().style.pointerEvents = 'auto';
+            // Ensure editor is editable and visible
+            const wrapper = editor.getWrapperElement();
+            wrapper.style.pointerEvents = 'auto';
+            wrapper.style.zIndex = '10';
+            wrapper.style.position = 'relative';
             editor.refresh();
             console.log('CodeMirror initialized successfully');
             return true;
@@ -139,6 +143,7 @@ function initializeCodeMirror(attempts = 5, delay = 500) {
                     codeEditor.style.borderRadius = '0.5rem';
                     codeEditor.style.padding = '10px';
                     codeEditor.style.pointerEvents = 'auto';
+                    codeEditor.style.zIndex = '10';
                     codeEditor.readOnly = false;
                     const savedScript = localStorage.getItem('customScript');
                     if (savedScript) codeEditor.value = savedScript;
@@ -157,6 +162,15 @@ function initializeCodeMirror(attempts = 5, delay = 500) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Check if JavaScript is enabled
+    if (typeof window === 'undefined' || !document) {
+        console.error('JavaScript appears to be disabled or restricted');
+        document.getElementById('error-message').textContent = 'Please enable JavaScript to use this site.';
+        document.getElementById('error-message').style.display = 'block';
+        document.getElementById('loading').style.display = 'none';
+        return;
+    }
+
     // Load scripts first to ensure page renders
     try {
         loadScripts(currentPage);
@@ -171,17 +185,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize CodeMirror and buttons
     try {
         const editorInitialized = initializeCodeMirror();
-        // Bind buttons
+        // Bind buttons, overriding onclick attributes
         const saveButton = document.getElementById('save-script-btn');
         const downloadButton = document.getElementById('download-script-btn');
         if (editorInitialized) {
             if (saveButton) {
+                saveButton.removeAttribute('onclick'); // Remove inline onclick
                 saveButton.addEventListener('click', saveScript);
                 console.log('Save button bound (CodeMirror)');
             } else {
                 console.error('Save button not found');
             }
             if (downloadButton) {
+                downloadButton.removeAttribute('onclick'); // Remove inline onclick
                 downloadButton.addEventListener('click', downloadCustomScript);
                 console.log('Download button bound (CodeMirror)');
             } else {
@@ -190,12 +206,14 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // Bind buttons to work with fallback textarea
             if (saveButton) {
+                saveButton.removeAttribute('onclick'); // Remove inline onclick
                 saveButton.addEventListener('click', saveScriptFallback);
                 console.log('Save button bound (fallback)');
             } else {
                 console.error('Save button not found');
             }
             if (downloadButton) {
+                downloadButton.removeAttribute('onclick'); // Remove inline onclick
                 downloadButton.addEventListener('click', downloadCustomScriptFallback);
                 console.log('Download button bound (fallback)');
             } else {
