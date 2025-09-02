@@ -1,12 +1,8 @@
-/* Custom styles for sick (cyberpunk/neon) and professional look */
-
-/* Font (professional) */
+/* styles.css */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap');
 body {
     font-family: 'Roboto', sans-serif;
 }
-
-/* Glitch effect (sick) */
 .glitch {
     position: relative;
     text-shadow: 
@@ -15,11 +11,9 @@ body {
         0.025em 0.05em 0 rgba(0, 0, 255, 0.75);
     animation: glitch 1s infinite;
 }
-
 .glitch-hover:hover {
     animation: glitch 0.3s infinite;
 }
-
 @keyframes glitch {
     0% {
         text-shadow: 
@@ -64,32 +58,23 @@ body {
             -0.025em -0.05em 0 rgba(0, 0, 255, 0.75);
     }
 }
-
-/* Neon shadow (sick + professional) */
 .shadow-neon {
     box-shadow: 0 0 10px rgba(0, 255, 255, 0.5), 0 0 20px rgba(255, 0, 255, 0.3);
 }
-
-/* Script cards */
 .script-card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-
 .script-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(0, 255, 255, 0.4);
 }
-
-/* CodeMirror overrides for professional look */
 .CodeMirror {
-    border: 1px solid #cyan-500;
+    border: 1px solid #00d7ff;
     height: 400px;
     background: #1a1a1a;
     color: #fff;
     border-radius: 0.5rem;
 }
-
-/* Discord button hover */
 .discord-btn:hover {
     box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
 }
