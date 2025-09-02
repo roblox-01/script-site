@@ -95,61 +95,31 @@ let currentPage = 1;
 let maxPages = 1;
 const pageSize = 6;
 
-// Initialize CodeMirror with retry and fallback
+// Initialize CodeMirror with retry
 function initializeCodeMirror(attempts = 5, delay = 500) {
     function tryInit(triesLeft) {
         try {
-            // Check if CodeMirror is loaded
             if (typeof window.CodeMirror !== 'object' || !window.CodeMirror.fromTextArea) {
                 throw new Error('CodeMirror or fromTextArea not loaded');
             }
             const codeEditor = document.getElementById('code-editor');
             if (!codeEditor) throw new Error('Code editor textarea not found');
-            // Initialize CodeMirror
             editor = window.CodeMirror.fromTextArea(codeEditor, {
                 mode: 'text/x-lua',
                 lineNumbers: true,
                 theme: 'monokai',
                 indentUnit: 4,
                 indentWithTabs: true,
-                extraKeys: { 'Ctrl-Space': 'autocomplete' },
-                readOnly: false,
-                autofocus: true,
-                lineWrapping: true // Ensure text wraps for usability
+                extraKeys: { 'Ctrl-Space': 'autocomplete' }
             });
-            // Load saved script
             const savedScript = localStorage.getItem('customScript');
             if (savedScript) editor.setValue(savedScript);
-            // Ensure editor is editable and visible
-            const wrapper = editor.getWrapperElement();
-            wrapper.style.pointerEvents = 'auto';
-            wrapper.style.zIndex = '10';
-            wrapper.style.position = 'relative';
-            editor.refresh();
-            console.log('CodeMirror initialized successfully');
+            console.log('CodeMirror initialized');
             return true;
         } catch (error) {
             if (triesLeft <= 1) {
                 console.error('CodeMirror init failed after retries:', error);
-                // Fallback: Show a plain textarea
-                const codeEditor = document.getElementById('code-editor');
-                if (codeEditor) {
-                    codeEditor.style.display = 'block';
-                    codeEditor.style.width = '100%';
-                    codeEditor.style.height = '400px';
-                    codeEditor.style.background = '#1a1a1a';
-                    codeEditor.style.color = '#fff';
-                    codeEditor.style.border = '2px solid #00d7ff';
-                    codeEditor.style.borderRadius = '0.5rem';
-                    codeEditor.style.padding = '10px';
-                    codeEditor.style.pointerEvents = 'auto';
-                    codeEditor.style.zIndex = '10';
-                    codeEditor.readOnly = false;
-                    const savedScript = localStorage.getItem('customScript');
-                    if (savedScript) codeEditor.value = savedScript;
-                    console.log('Fallback textarea displayed');
-                }
-                document.getElementById('error-message').textContent = 'Editor failed to load. Using basic textarea.';
+                document.getElementById('error-message').textContent = 'Editor failed to load. You can still browse scripts.';
                 document.getElementById('error-message').style.display = 'block';
                 return false;
             }
@@ -162,15 +132,6 @@ function initializeCodeMirror(attempts = 5, delay = 500) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Check if JavaScript is enabled
-    if (typeof window === 'undefined' || !document) {
-        console.error('JavaScript appears to be disabled or restricted');
-        document.getElementById('error-message').textContent = 'Please enable JavaScript to use this site.';
-        document.getElementById('error-message').style.display = 'block';
-        document.getElementById('loading').style.display = 'none';
-        return;
-    }
-
     // Load scripts first to ensure page renders
     try {
         loadScripts(currentPage);
@@ -184,38 +145,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize CodeMirror and buttons
     try {
-        const editorInitialized = initializeCodeMirror();
-        // Bind buttons, overriding onclick attributes
-        const saveButton = document.getElementById('save-script-btn');
-        const downloadButton = document.getElementById('download-script-btn');
-        if (editorInitialized) {
+        if (initializeCodeMirror()) {
+            // Bind buttons only if editor initializes
+            const saveButton = document.getElementById('save-script-btn');
+            const downloadButton = document.getElementById('download-script-btn');
             if (saveButton) {
-                saveButton.removeAttribute('onclick'); // Remove inline onclick
                 saveButton.addEventListener('click', saveScript);
-                console.log('Save button bound (CodeMirror)');
+                console.log('Save button bound');
             } else {
                 console.error('Save button not found');
             }
             if (downloadButton) {
-                downloadButton.removeAttribute('onclick'); // Remove inline onclick
                 downloadButton.addEventListener('click', downloadCustomScript);
-                console.log('Download button bound (CodeMirror)');
-            } else {
-                console.error('Download button not found');
-            }
-        } else {
-            // Bind buttons to work with fallback textarea
-            if (saveButton) {
-                saveButton.removeAttribute('onclick'); // Remove inline onclick
-                saveButton.addEventListener('click', saveScriptFallback);
-                console.log('Save button bound (fallback)');
-            } else {
-                console.error('Save button not found');
-            }
-            if (downloadButton) {
-                downloadButton.removeAttribute('onclick'); // Remove inline onclick
-                downloadButton.addEventListener('click', downloadCustomScriptFallback);
-                console.log('Download button bound (fallback)');
+                console.log('Download button bound');
             } else {
                 console.error('Download button not found');
             }
@@ -235,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Save script (CodeMirror)
+// Save script
 function saveScript() {
     try {
         if (!editor) throw new Error('Editor not initialized');
@@ -249,22 +191,7 @@ function saveScript() {
     }
 }
 
-// Save script (Fallback textarea)
-function saveScriptFallback() {
-    try {
-        const codeEditor = document.getElementById('code-editor');
-        if (!codeEditor) throw new Error('Textarea not found');
-        const script = codeEditor.value;
-        localStorage.setItem('customScript', script);
-        alert('Script saved to local storage!');
-        console.log('Script saved (fallback):', script.substring(0, 50) + '...');
-    } catch (error) {
-        console.error('Save script fallback error:', error);
-        alert('Error saving script: Textarea not found.');
-    }
-}
-
-// Download script (CodeMirror)
+// Download script
 function downloadCustomScript() {
     try {
         if (!editor) throw new Error('Editor not initialized');
@@ -284,30 +211,6 @@ function downloadCustomScript() {
     } catch (error) {
         console.error('Download script error:', error);
         alert('Error downloading script: Editor may not have loaded.');
-    }
-}
-
-// Download script (Fallback textarea)
-function downloadCustomScriptFallback() {
-    try {
-        const codeEditor = document.getElementById('code-editor');
-        if (!codeEditor) throw new Error('Textarea not found');
-        const code = codeEditor.value;
-        if (!code) {
-            alert('No script to download!');
-            return;
-        }
-        const blob = new Blob([code], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'custom_script.lua';
-        a.click();
-        URL.revokeObjectURL(url);
-        console.log('Script downloaded (fallback)');
-    } catch (error) {
-        console.error('Download script fallback error:', error);
-        alert('Error downloading script: Textarea not found.');
     }
 }
 
@@ -415,10 +318,27 @@ async function copyScript(rawUrl) {
             console.log('Script copied, length:', text.length);
         } catch (clipError) {
             console.error('Clipboard error:', clipError);
-            // Fallback: Show prompt for manual copy
-            prompt('Clipboard access failed. Copy the script below or visit the URL:', text);
-            alert('If copying failed, visit: ' + rawUrl);
-            console.log('Displayed prompt for manual copy');
+            // Fallback: Create visible textarea for manual copy
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.width = '80%';
+            textarea.style.height = '200px';
+            textarea.style.position = 'fixed';
+            textarea.style.top = '50%';
+            textarea.style.left = '50%';
+            textarea.style.transform = 'translate(-50%, -50%)';
+            textarea.style.zIndex = '1000';
+            textarea.style.background = '#1a1a1a';
+            textarea.style.color = '#fff';
+            textarea.style.border = '2px solid #00d7ff';
+            textarea.style.padding = '10px';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            alert('Clipboard access failed. Please copy the script from the textarea and close it by clicking OK.');
+            // Remove textarea after alert is closed
+            document.addEventListener('click', () => document.body.removeChild(textarea), { once: true });
+            console.log('Displayed textarea for manual copy');
         }
     } catch (error) {
         console.error('Copy script error:', error);
