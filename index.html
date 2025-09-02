@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TheScriptSite - Next-Gen Roblox Scripts Hub</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMI7kn53Vy2g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.css" integrity="sha512-6jdI3M5lE0MbN0sM+3M4zC2E3jQk4SVl0vFG65KUzB2ABWvW2vJULS+80F4a6ky80mvBObS3Kjo0BFlJRi+AHMQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/theme/monokai.min.css" integrity="sha512-y3nWvxCJoU+cg1sJxWyWkrH3hU2+9W2k4mrm7K2P5hG7fR4gqDmYTs2v3q+gsbQ3nWLRb2Y+ktL8p7MQ6a0FjYg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-black text-white overflow-x-hidden">
@@ -55,7 +53,8 @@
 
     <section id="create" class="container mx-auto my-16 bg-opacity-90 bg-gray-900 p-10 rounded-2xl shadow-neon">
         <h2 class="text-4xl font-bold text-center mb-12 glitch">Create Your Script</h2>
-        <textarea id="code-editor" class="w-full rounded-2xl bg-[#1a1a1a] text-white border-2 border-[#00d7ff] p-4" style="min-height: 400px; resize: vertical; pointer-events: auto; z-index: 10;"></textarea>
+        <div id="ace-editor" style="width: 100%; min-height: 400px; border: 2px solid #00d7ff; border-radius: 0.5rem; z-index: 10; position: relative;"></div>
+        <textarea id="code-editor" class="w-full rounded-2xl bg-[#1a1a1a] text-white border-2 border-[#00d7ff] p-4 hidden" style="min-height: 400px; resize: vertical; pointer-events: auto; z-index: 10;" placeholder="Type your Lua script here..."></textarea>
         <div class="text-center mt-6">
             <button id="save-script-btn" class="bg-gradient-to-r from-purple-600 to-cyan-500 text-white py-3 px-8 rounded-lg mr-4 hover:scale-105 transition">Save Script</button>
             <button id="download-script-btn" class="bg-gradient-to-r from-green-600 to-teal-500 text-white py-3 px-8 rounded-lg hover:scale-105 transition">Download Script</button>
@@ -93,11 +92,10 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js" integrity="sha512-1Sy2GyN4O9D2OIQG2lD3U/3S/IU4FzRLOgQGR4isV2Q85y0r34Vs0leJ28iv8da9Q/3ryd2cQ1rGIQDH7N7b2ng==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js" integrity="sha512-cM6vI6jroVv/WZMoV2vG7jL3WeyuP3w+CwhJFu+doYJOh0TjiOLb0sKpW3a0vYdn2h3e9V1Q2WnBNhImcmg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.js" integrity="sha512-6jdI3M5lE0MbN0sM+3M4zC2E3jQk4SVl0vFG65KUzB2ABWvW2vJULS+80F4a6ky80mvBObS3Kjo0BFlJRi+AHMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/mode/lua/lua.min.js" integrity="sha512-v2Faf0AaLD1uNfQ5nJSE1rLqajrTH4N2dwB2W8r6z71uA2oqPfS7+PF4TVi+APpp7iHQ3vO5H1cMBNQynKBAeYA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <!-- Fallback CDN for CodeMirror -->
-    <script>if (!window.CodeMirror) { document.write('<script src="https://unpkg.com/codemirror@5.65.18/lib/codemirror.js"><\/script>'); }</script>
-    <script>if (!window.CodeMirror) { document.write('<script src="https://unpkg.com/codemirror@5.65.18/mode/lua/lua.js"><\/script>'); }</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.35.4/ace.min.js" integrity="sha512-3o1sDixsKmcCTr2bhXbJqDbzABinKQBVo7WKFPDu2CY6GAYv8M44V39t3Ja+KPfH6RFlT8XDAb7xW6/+MdaCw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.35.4/mode-lua.min.js" integrity="sha512-KmO4ZJ2G6y0W+IW9eW5Zy9z4lS6u0gH5+2W2h8j0uB9y9e0s+IW9eW5Zy9z4lS6u0gH5+2W2h8j0uB9y9e0s==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>if (!window.ace) { document.write('<script src="https://unpkg.com/ace-builds@1.35.4/src-min-noconflict/ace.js"><\/script>'); }</script>
+    <script>if (!window.ace) { document.write('<script src="https://unpkg.com/ace-builds@1.35.4/src-min-noconflict/mode-lua.js"><\/script>'); }</script>
     <script src="scripts.js"></script>
 </body>
 </html>
