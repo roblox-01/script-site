@@ -95,50 +95,51 @@ let currentPage = 1;
 let maxPages = 1;
 const pageSize = 6;
 
-// Initialize CodeMirror with retry and fallback
-function initializeCodeMirror(attempts = 5, delay = 500) {
+// Initialize Ace Editor with retry and fallback
+function initializeEditor(attempts = 5, delay = 500) {
     function tryInit(triesLeft) {
         try {
-            // Check if CodeMirror is loaded
-            if (typeof window.CodeMirror !== 'object' || !window.CodeMirror.fromTextArea) {
-                throw new Error('CodeMirror or fromTextArea not loaded');
+            // Check if Ace is loaded
+            if (typeof window.ace !== 'object' || !window.ace.edit) {
+                throw new Error('Ace Editor not loaded');
             }
-            const codeEditor = document.getElementById('code-editor');
-            if (!codeEditor) throw new Error('Code editor textarea not found');
-            // Initialize CodeMirror
-            editor = window.CodeMirror.fromTextArea(codeEditor, {
-                mode: 'text/x-lua',
-                lineNumbers: true,
-                theme: 'monokai',
-                indentUnit: 4,
-                indentWithTabs: true,
-                extraKeys: { 'Ctrl-Space': 'autocomplete' },
+            const aceEditor = document.getElementById('ace-editor');
+            if (!aceEditor) throw new Error('Ace editor container not found');
+            // Initialize Ace Editor
+            editor = window.ace.edit(aceEditor);
+            editor.setOptions({
+                mode: 'ace/mode/lua',
+                theme: 'ace/theme/monokai',
+                tabSize: 4,
+                useSoftTabs: true,
+                enableBasicAutocompletion: true,
+                enableLiveAutocompletion: true,
                 readOnly: false,
-                autofocus: true,
-                lineWrapping: true
+                fontSize: 14,
+                wrap: true
             });
             // Load saved script
             const savedScript = localStorage.getItem('customScript');
-            if (savedScript) editor.setValue(savedScript);
+            if (savedScript) editor.setValue(savedScript, -1);
             // Ensure editor is editable and visible
-            const wrapper = editor.getWrapperElement();
-            wrapper.style.pointerEvents = 'auto';
-            wrapper.style.zIndex = '10';
-            wrapper.style.position = 'relative';
-            wrapper.style.minHeight = '400px';
-            wrapper.style.background = '#1a1a1a';
-            wrapper.style.border = '2px solid #00d7ff';
-            wrapper.style.borderRadius = '0.5rem';
-            wrapper.style.padding = '10px';
-            editor.refresh();
-            console.log('CodeMirror initialized successfully');
+            aceEditor.style.pointerEvents = 'auto';
+            aceEditor.style.zIndex = '10';
+            aceEditor.style.position = 'relative';
+            aceEditor.style.minHeight = '400px';
+            aceEditor.style.background = '#1a1a1a';
+            aceEditor.style.border = '2px solid #00d7ff';
+            aceEditor.style.borderRadius = '0.5rem';
+            editor.renderer.updateFull();
+            editor.focus();
+            console.log('Ace Editor initialized successfully');
             return true;
         } catch (error) {
             if (triesLeft <= 1) {
-                console.error('CodeMirror init failed after retries:', error);
+                console.error('Ace Editor init failed after retries:', error);
                 // Fallback: Show a plain textarea
                 const codeEditor = document.getElementById('code-editor');
                 if (codeEditor) {
+                    codeEditor.classList.remove('hidden');
                     codeEditor.style.display = 'block';
                     codeEditor.style.width = '100%';
                     codeEditor.style.minHeight = '400px';
@@ -153,9 +154,11 @@ function initializeCodeMirror(attempts = 5, delay = 500) {
                     codeEditor.setAttribute('placeholder', 'Type your Lua script here...');
                     const savedScript = localStorage.getItem('customScript');
                     if (savedScript) codeEditor.value = savedScript;
-                    // Ensure textarea is focused
                     codeEditor.focus();
                     console.log('Fallback textarea displayed');
+                    // Hide Ace container
+                    const aceEditor = document.getElementById('ace-editor');
+                    if (aceEditor) aceEditor.style.display = 'none';
                 } else {
                     console.error('Textarea element not found');
                 }
@@ -163,7 +166,7 @@ function initializeCodeMirror(attempts = 5, delay = 500) {
                 document.getElementById('error-message').style.display = 'block';
                 return false;
             }
-            console.log(`Retrying CodeMirror init (${triesLeft - 1} attempts left)...`);
+            console.log(`Retrying Ace Editor init (${triesLeft - 1} attempts left)...`);
             setTimeout(() => tryInit(triesLeft - 1), delay);
             return false;
         }
@@ -192,22 +195,22 @@ document.addEventListener('DOMContentLoaded', () => {
         renderScripts(fallbackScripts, currentPage);
     }
 
-    // Initialize CodeMirror and buttons
+    // Initialize Ace Editor and buttons
     try {
-        const editorInitialized = initializeCodeMirror();
+        const editorInitialized = initializeEditor();
         // Bind buttons
         const saveButton = document.getElementById('save-script-btn');
         const downloadButton = document.getElementById('download-script-btn');
         if (editorInitialized) {
             if (saveButton) {
                 saveButton.addEventListener('click', saveScript);
-                console.log('Save button bound (CodeMirror)');
+                console.log('Save button bound (Ace Editor)');
             } else {
                 console.error('Save button not found');
             }
             if (downloadButton) {
                 downloadButton.addEventListener('click', downloadCustomScript);
-                console.log('Download button bound (CodeMirror)');
+                console.log('Download button bound (Ace Editor)');
             } else {
                 console.error('Download button not found');
             }
@@ -241,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Save script (CodeMirror)
+// Save script (Ace Editor)
 function saveScript() {
     try {
         if (!editor) throw new Error('Editor not initialized');
@@ -270,7 +273,7 @@ function saveScriptFallback() {
     }
 }
 
-// Download script (CodeMirror)
+// Download script (Ace Editor)
 function downloadCustomScript() {
     try {
         if (!editor) throw new Error('Editor not initialized');
