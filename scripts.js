@@ -6,7 +6,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 
 const geometry = new THREE.BufferGeometry();
 const vertices = [];
-for (let i = 0; i < 10000; i++) {
+for (let i = 0; i < 10000; i++) {fdf
     vertices.push((Math.random() - 0.5) * 2000);
     vertices.push((Math.random() - 0.5) * 2000);
     vertices.push((Math.random() - 0.5) * 2000);
