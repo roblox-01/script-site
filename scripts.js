@@ -32,15 +32,36 @@ window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// Code editor (professional Lua editor)
+// Fallback scripts (minimal, based on provided API data)
+const fallbackScripts = [
+    {
+        _id: "68b60913c5aae50f0bce4671",
+        title: "Grow A Garden - 100+ Features",
+        description: "Works On Grow A Garden. Probably the best script in 2025!",
+        views: 3,
+        keySystem: true,
+        image: "https://tr.rbxcdn.com/180DAY-828d42adf3e2a9aa2e0bf1369c6477b2/480/270/Image/Jpeg/noFilter",
+        rawScript: "https://rscripts.net/raw/grow-a-garden-100-features_1756760339494_AZ96QPhrwo.txt"
+    },
+    {
+        _id: "68b5e39ac5aae50f0b8b785c",
+        title: "Insta Kill OP Script",
+        description: "Instant kill script with showcase: https://streamable.com/baa9ra",
+        views: 133,
+        keySystem: false,
+        image: "https://rscripts.net/assets/scripts/68b5e39ac5aae50f0b8b785c_1756750746418_mwpCbNLxI8.webp",
+        rawScript: "https://rscripts.net/raw/insta-kill-op-script_1756750746337_qEIbUuV0tK.txt"
+    }
+];
+
 let editor;
 let currentPage = 1;
 let maxPages = 1;
 const pageSize = 3;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize CodeMirror
     try {
+        // Initialize CodeMirror
         editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
             mode: 'lua',
             lineNumbers: true,
@@ -65,6 +86,8 @@ document.addEventListener('DOMContentLoaded', () => {
         loadScripts(currentPage);
     } catch (error) {
         console.error('DOMContentLoaded error:', error);
+        document.getElementById('error-message').textContent = 'Initialization error: ' + error.message;
+        document.getElementById('error-message').style.display = 'block';
     }
 });
 
@@ -116,13 +139,16 @@ async function loadScripts(page) {
         const data = await response.json();
         maxPages = data.info.maxPages || 1;
         const scripts = data.scripts || [];
+        if (scripts.length === 0 && page === 1) {
+            throw new Error('No scripts returned from API');
+        }
         renderScripts(scripts, page);
         console.log('Scripts loaded:', scripts.length, 'Max pages:', maxPages);
     } catch (error) {
         console.error('Load scripts error:', error);
-        errorMessage.textContent = 'Failed to load scripts: ' + error.message;
+        errorMessage.textContent = 'Failed to load scripts: ' + error.message + '. Showing fallback scripts.';
         errorMessage.style.display = 'block';
-        renderScripts([], page); // Fallback to empty
+        renderScripts(fallbackScripts, page); // Use fallback
     } finally {
         loading.style.display = 'none';
     }
@@ -136,26 +162,30 @@ function renderScripts(scripts, page) {
         const pageScripts = scripts.slice(start, end);
         const grid = document.getElementById('script-grid');
         grid.innerHTML = '';
-        pageScripts.forEach(s => {
-            const card = document.createElement('div');
-            card.className = 'bg-gray-800 p-6 rounded-lg hover:bg-gray-700 transition script-card shadow-neon';
-            card.innerHTML = `
-                <img src="${s.image || 'https://via.placeholder.com/480x270'}" alt="${s.title}" class="w-full h-32 object-cover mb-4 rounded">
-                <h3 class="text-2xl font-bold mb-2 glitch-hover">${s.title}</h3>
-                <p class="text-gray-300 mb-4">${s.description ? s.description.substring(0, 100) + '...' : 'No description'}</p>
-                <div class="mt-4">
-                    <span class="text-gray-400"><i class="fas fa-eye mr-1"></i>${s.views}</span>
-                    ${s.keySystem ? '' : '<span class="ml-4 text-green-400"><i class="fas fa-key mr-1"></i>Keyless</span>'}
-                </div>
-                <button class="mt-4 bg-cyan-600 text-white py-2 px-4 rounded hover:bg-cyan-500 transition copy-script-btn" data-url="${s.rawScript}">Copy Script</button>
-            `;
-            grid.appendChild(card);
-        });
+        if (pageScripts.length === 0) {
+            grid.innerHTML = '<p class="text-center text-gray-400">No scripts available for this page.</p>';
+        } else {
+            pageScripts.forEach(s => {
+                const card = document.createElement('div');
+                card.className = 'bg-gray-800 p-6 rounded-lg hover:bg-gray-700 transition script-card shadow-neon';
+                card.innerHTML = `
+                    <img src="${s.image || 'https://via.placeholder.com/480x270'}" alt="${s.title}" class="w-full h-32 object-cover mb-4 rounded">
+                    <h3 class="text-2xl font-bold mb-2 glitch-hover">${s.title}</h3>
+                    <p class="text-gray-300 mb-4">${s.description ? s.description.substring(0, 100) + '...' : 'No description'}</p>
+                    <div class="mt-4">
+                        <span class="text-gray-400"><i class="fas fa-eye mr-1"></i>${s.views}</span>
+                        ${s.keySystem ? '' : '<span class="ml-4 text-green-400"><i class="fas fa-key mr-1"></i>Keyless</span>'}
+                    </div>
+                    <button class="mt-4 bg-cyan-600 text-white py-2 px-4 rounded hover:bg-cyan-500 transition copy-script-btn" data-url="${s.rawScript}">Copy Script</button>
+                `;
+                grid.appendChild(card);
+            });
 
-        // Bind copy buttons
-        document.querySelectorAll('.copy-script-btn').forEach(btn => {
-            btn.addEventListener('click', () => copyScript(btn.getAttribute('data-url')));
-        });
+            // Bind copy buttons
+            document.querySelectorAll('.copy-script-btn').forEach(btn => {
+                btn.addEventListener('click', () => copyScript(btn.getAttribute('data-url')));
+            });
+        }
 
         document.getElementById('page-info').textContent = `Page ${page} of ${maxPages}`;
         document.getElementById('prev-page').disabled = page === 1;
@@ -163,6 +193,8 @@ function renderScripts(scripts, page) {
         console.log('Rendered page:', page, 'Scripts:', pageScripts.length);
     } catch (error) {
         console.error('Render scripts error:', error);
+        document.getElementById('error-message').textContent = 'Error rendering scripts: ' + error.message;
+        document.getElementById('error-message').style.display = 'block';
     }
 }
 
