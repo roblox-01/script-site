@@ -1,4 +1,4 @@
-// Background particle effect (sick starfield)
+// Background particle effect
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), alpha: true });
@@ -95,87 +95,89 @@ let currentPage = 1;
 let maxPages = 1;
 const pageSize = 6;
 
-// Delayed CodeMirror initialization with retry
+// Initialize CodeMirror with retry
 function initializeCodeMirror(attempts = 5, delay = 500) {
-    return new Promise((resolve, reject) => {
-        function tryInit(triesLeft) {
-            try {
-                if (typeof CodeMirror === 'undefined' || !CodeMirror.fromTextArea) {
-                    throw new Error('CodeMirror or fromTextArea not loaded');
-                }
-                const codeEditor = document.getElementById('code-editor');
-                if (!codeEditor) throw new Error('Code editor textarea not found');
-                editor = CodeMirror.fromTextArea(codeEditor, {
-                    mode: 'text/x-lua',
-                    lineNumbers: true,
-                    theme: 'monokai',
-                    indentUnit: 4,
-                    indentWithTabs: true,
-                    extraKeys: { 'Ctrl-Space': 'autocomplete' }
-                });
-                const savedScript = localStorage.getItem('customScript');
-                if (savedScript) editor.setValue(savedScript);
-                console.log('CodeMirror initialized');
-                resolve(true);
-            } catch (error) {
-                if (triesLeft <= 1) {
-                    console.error('CodeMirror init failed after retries:', error);
-                    document.getElementById('error-message').textContent = 'Editor initialization failed: ' + error.message + '. Showing fallback scripts.';
-                    document.getElementById('error-message').style.display = 'block';
-                    reject(error);
-                } else {
-                    console.log(`Retrying CodeMirror init (${triesLeft - 1} attempts left)...`);
-                    setTimeout(() => tryInit(triesLeft - 1), delay);
-                }
+    function tryInit(triesLeft) {
+        try {
+            if (typeof window.CodeMirror !== 'object' || !window.CodeMirror.fromTextArea) {
+                throw new Error('CodeMirror or fromTextArea not loaded');
             }
+            const codeEditor = document.getElementById('code-editor');
+            if (!codeEditor) throw new Error('Code editor textarea not found');
+            editor = window.CodeMirror.fromTextArea(codeEditor, {
+                mode: 'text/x-lua',
+                lineNumbers: true,
+                theme: 'monokai',
+                indentUnit: 4,
+                indentWithTabs: true,
+                extraKeys: { 'Ctrl-Space': 'autocomplete' }
+            });
+            const savedScript = localStorage.getItem('customScript');
+            if (savedScript) editor.setValue(savedScript);
+            console.log('CodeMirror initialized');
+            return true;
+        } catch (error) {
+            if (triesLeft <= 1) {
+                console.error('CodeMirror init failed after retries:', error);
+                document.getElementById('error-message').textContent = 'Editor failed to load. You can still browse scripts.';
+                document.getElementById('error-message').style.display = 'block';
+                return false;
+            }
+            console.log(`Retrying CodeMirror init (${triesLeft - 1} attempts left)...`);
+            setTimeout(() => tryInit(triesLeft - 1), delay);
+            return false;
         }
-        tryInit(attempts);
-    });
+    }
+    return tryInit(attempts);
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
+    // Load scripts first to ensure page renders
     try {
-        // Initialize CodeMirror
-        await initializeCodeMirror();
-
-        // Bind save and download buttons
-        const saveButton = document.getElementById('save-script-btn');
-        const downloadButton = document.getElementById('download-script-btn');
-        if (saveButton) {
-            saveButton.addEventListener('click', saveScript);
-            console.log('Save button bound');
-        } else {
-            console.error('Save button not found');
-        }
-        if (downloadButton) {
-            downloadButton.addEventListener('click', downloadCustomScript);
-            console.log('Download button bound');
-        } else {
-            console.error('Download button not found');
-        }
-
-        // Load scripts
         loadScripts(currentPage);
-
-        // Verify watermark
-        const watermark = document.querySelector('.watermark');
-        if (watermark) {
-            watermark.addEventListener('click', () => {
-                console.log('Watermark clicked, navigating to:', watermark.href);
-            });
-        } else {
-            console.error('Watermark element not found');
-        }
     } catch (error) {
-        console.error('DOMContentLoaded error:', error);
-        document.getElementById('error-message').textContent = 'Initialization error: ' + error.message + '. Showing fallback scripts.';
+        console.error('Initial script load error:', error);
+        document.getElementById('error-message').textContent = 'Error loading scripts. Showing fallback scripts.';
         document.getElementById('error-message').style.display = 'block';
         document.getElementById('loading').style.display = 'none';
         renderScripts(fallbackScripts, currentPage);
     }
+
+    // Initialize CodeMirror and buttons
+    try {
+        if (initializeCodeMirror()) {
+            // Bind buttons only if editor initializes
+            const saveButton = document.getElementById('save-script-btn');
+            const downloadButton = document.getElementById('download-script-btn');
+            if (saveButton) {
+                saveButton.addEventListener('click', saveScript);
+                console.log('Save button bound');
+            } else {
+                console.error('Save button not found');
+            }
+            if (downloadButton) {
+                downloadButton.addEventListener('click', downloadCustomScript);
+                console.log('Download button bound');
+            } else {
+                console.error('Download button not found');
+            }
+        }
+
+        // Bind watermark
+        const watermark = document.querySelector('.watermark');
+        if (watermark) {
+            watermark.addEventListener('click', () => console.log('Watermark clicked:', watermark.href));
+        } else {
+            console.error('Watermark not found');
+        }
+    } catch (error) {
+        console.error('DOMContentLoaded error:', error);
+        document.getElementById('error-message').textContent = 'Initialization error: ' + error.message;
+        document.getElementById('error-message').style.display = 'block';
+    }
 });
 
-// Save script function
+// Save script
 function saveScript() {
     try {
         if (!editor) throw new Error('Editor not initialized');
@@ -185,11 +187,11 @@ function saveScript() {
         console.log('Script saved:', script.substring(0, 50) + '...');
     } catch (error) {
         console.error('Save script error:', error);
-        alert('Error saving script: ' + error.message);
+        alert('Error saving script: Editor may not have loaded.');
     }
 }
 
-// Download script function
+// Download script
 function downloadCustomScript() {
     try {
         if (!editor) throw new Error('Editor not initialized');
@@ -208,11 +210,11 @@ function downloadCustomScript() {
         console.log('Script downloaded');
     } catch (error) {
         console.error('Download script error:', error);
-        alert('Error downloading script: ' + error.message);
+        alert('Error downloading script: Editor may not have loaded.');
     }
 }
 
-// Load scripts from API
+// Load scripts
 async function loadScripts(page) {
     const loading = document.getElementById('loading');
     const errorMessage = document.getElementById('error-message');
@@ -234,7 +236,7 @@ async function loadScripts(page) {
         console.log('Scripts loaded:', scripts.length, 'Max pages:', maxPages);
     } catch (error) {
         console.error('Load scripts error:', error);
-        errorMessage.textContent = 'Failed to load scripts: ' + error.message + '. Showing fallback scripts.';
+        errorMessage.textContent = 'Failed to load scripts. Showing fallback scripts.';
         errorMessage.style.display = 'block';
         renderScripts(fallbackScripts, page);
     } finally {
@@ -242,7 +244,7 @@ async function loadScripts(page) {
     }
 }
 
-// Render scripts for current page
+// Render scripts
 function renderScripts(scripts, page) {
     try {
         const start = 0;
@@ -269,7 +271,6 @@ function renderScripts(scripts, page) {
                 grid.appendChild(card);
             });
 
-            // Bind copy buttons
             document.querySelectorAll('.copy-script-btn').forEach(btn => {
                 btn.addEventListener('click', () => copyScript(btn.getAttribute('data-url')));
             });
@@ -281,17 +282,17 @@ function renderScripts(scripts, page) {
         console.log('Rendered page:', page, 'Scripts:', pageScripts.length);
     } catch (error) {
         console.error('Render scripts error:', error);
-        document.getElementById('error-message').textContent = 'Error rendering scripts: ' + error.message;
+        document.getElementById('error-message').textContent = 'Error rendering scripts.';
         document.getElementById('error-message').style.display = 'block';
     }
 }
 
-// Pagination events
+// Pagination
 document.getElementById('prev-page').addEventListener('click', () => {
     if (currentPage > 1) {
         currentPage--;
         loadScripts(currentPage);
-        console.log('Previous page clicked:', currentPage);
+        console.log('Previous page:', currentPage);
     }
 });
 
@@ -299,11 +300,11 @@ document.getElementById('next-page').addEventListener('click', () => {
     if (currentPage < maxPages) {
         currentPage++;
         loadScripts(currentPage);
-        console.log('Next page clicked:', currentPage);
+        console.log('Next page:', currentPage);
     }
 });
 
-// Copy script from raw URL
+// Copy script
 async function copyScript(rawUrl) {
     try {
         console.log('Copying script from:', rawUrl);
@@ -311,15 +312,32 @@ async function copyScript(rawUrl) {
         if (!response.ok) throw new Error(`Failed to fetch script: ${response.status}`);
         const text = await response.text();
         try {
+            if (!navigator.clipboard) throw new Error('Clipboard API not supported');
             await navigator.clipboard.writeText(text);
             alert('Script copied to clipboard!');
             console.log('Script copied, length:', text.length);
         } catch (clipError) {
             console.error('Clipboard error:', clipError);
-            prompt('Clipboard access denied. Copy the script manually:', text);
+            // Enhanced fallback: Show script in textarea for easy copying
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                alert('Script copied to clipboard (fallback method)!');
+                console.log('Script copied via execCommand');
+            } catch (execError) {
+                console.error('Fallback copy error:', execError);
+                prompt('Clipboard access denied. Copy manually or visit the script URL:', text);
+                alert('If copying failed, visit: ' + rawUrl);
+            }
+            document.body.removeChild(textarea);
         }
     } catch (error) {
         console.error('Copy script error:', error);
-        alert('Error copying script: ' + error.message + '. Try accessing the script URL directly: ' + rawUrl);
+        alert('Error copying script. Visit: ' + rawUrl);
     }
 }
