@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TheScriptSite - Next-Gen Roblox Scripts Hub</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" integrity="sha512-wnea99uKIC3TJF7v4eKk4Y+lMz2Mklv18+r4na2Gn1abDRPPOeef95xTzdwGD9e6zXJBteMI7kn53VX2BxzV9Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/theme/monokai.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.css" integrity="sha512-uf06llspW44/LZpHzHT6qBOIVODjWtv4MxCricRxkzvopAlSWnTf6hpZTFxuuZcuNE9CBQhqE0Seu1CoRk84nQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/theme/monokai.min.css" integrity="sha512-R6R2Ji0qY0V0wr+3K0vNIR6a8L5Xb6mZxsW2ugrh2r4c6A5p5vHr7CkL0udlF+Ubo3g09KTHYgBzK9+UpsN//g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-black text-white overflow-x-hidden">
@@ -51,8 +51,8 @@
         <h2 class="text-4xl font-bold text-center mb-12 glitch">Create Your Script</h2>
         <textarea id="code-editor" class="w-full rounded-2xl"></textarea>
         <div class="text-center mt-6">
-            <button class="bg-gradient-to-r from-purple-600 to-cyan-500 text-white py-3 px-8 rounded-lg mr-4 hover:scale-105 transition" onclick="saveScript()">Save Script</button>
-            <button class="bg-gradient-to-r from-green-600 to-teal-500 text-white py-3 px-8 rounded-lg hover:scale-105 transition" onclick="downloadCustomScript()">Download Script</button>
+            <button id="save-script-btn" class="bg-gradient-to-r from-purple-600 to-cyan-500 text-white py-3 px-8 rounded-lg mr-4 hover:scale-105 transition">Save Script</button>
+            <button id="download-script-btn" class="bg-gradient-to-r from-green-600 to-teal-500 text-white py-3 px-8 rounded-lg hover:scale-105 transition">Download Script</button>
         </div>
     </section>
 
@@ -85,10 +85,10 @@
         <a href="http://ShadowT3ch.site" target="_blank" class="watermark fixed bottom-4 right-4 text-sm text-cyan-400 glitch-hover">ShadowT3ch</a>
     </footer>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/mode/lua/lua.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js" integrity="sha512-3c9/FLfVpr9ABmC3N1V2nT0W74N2kyA9yEk3ekcdiZufx+Xs8qetJMXvC35a0pB0KovkFy3z6b0EEAfVlsuA4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js" integrity="sha512-cM21p0s9E1cm1K0qSP7Hi+x5qNJBh5qN2NYZ5+GZ7E2cBLgfTRU6Ha56vDJG3KpnY1NDYGpLRE0JHzvH2Zu9uQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.js" integrity="sha512-A0z9Xjf7Y2XAXsxi5DVb2C0v0ZJLjGkmHlwTzSO3vZNhcDlZm1u5zWaGEnx+iHMw7C3aULn+A5CYFLih61dwYA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/mode/lua/lua.min.js" integrity="sha512-4bE0NeO7WyN4GIMkh2q2Tbh+2hWzlHAUpBMi3N1+89kH6gCa6nC8gG1Z8nrVLM5Ho5D9hK3fImV5heN0Q8RJtQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="scripts.js"></script>
 </body>
 </html>
