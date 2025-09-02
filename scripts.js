@@ -112,11 +112,16 @@ function initializeCodeMirror(attempts = 5, delay = 500) {
                 theme: 'monokai',
                 indentUnit: 4,
                 indentWithTabs: true,
-                extraKeys: { 'Ctrl-Space': 'autocomplete' }
+                extraKeys: { 'Ctrl-Space': 'autocomplete' },
+                readOnly: false, // Ensure editor is editable
+                autofocus: true // Auto-focus to allow typing
             });
             // Load saved script
             const savedScript = localStorage.getItem('customScript');
             if (savedScript) editor.setValue(savedScript);
+            // Ensure editor is editable
+            editor.getWrapperElement().style.pointerEvents = 'auto';
+            editor.refresh();
             console.log('CodeMirror initialized successfully');
             return true;
         } catch (error) {
@@ -133,6 +138,8 @@ function initializeCodeMirror(attempts = 5, delay = 500) {
                     codeEditor.style.border = '2px solid #00d7ff';
                     codeEditor.style.borderRadius = '0.5rem';
                     codeEditor.style.padding = '10px';
+                    codeEditor.style.pointerEvents = 'auto';
+                    codeEditor.readOnly = false;
                     const savedScript = localStorage.getItem('customScript');
                     if (savedScript) codeEditor.value = savedScript;
                     console.log('Fallback textarea displayed');
@@ -163,33 +170,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize CodeMirror and buttons
     try {
-        if (initializeCodeMirror()) {
-            // Bind buttons only if editor initializes
-            const saveButton = document.getElementById('save-script-btn');
-            const downloadButton = document.getElementById('download-script-btn');
+        const editorInitialized = initializeCodeMirror();
+        // Bind buttons
+        const saveButton = document.getElementById('save-script-btn');
+        const downloadButton = document.getElementById('download-script-btn');
+        if (editorInitialized) {
             if (saveButton) {
                 saveButton.addEventListener('click', saveScript);
-                console.log('Save button bound');
+                console.log('Save button bound (CodeMirror)');
             } else {
                 console.error('Save button not found');
             }
             if (downloadButton) {
                 downloadButton.addEventListener('click', downloadCustomScript);
-                console.log('Download button bound');
+                console.log('Download button bound (CodeMirror)');
             } else {
                 console.error('Download button not found');
             }
         } else {
             // Bind buttons to work with fallback textarea
-            const saveButton = document.getElementById('save-script-btn');
-            const downloadButton = document.getElementById('download-script-btn');
             if (saveButton) {
                 saveButton.addEventListener('click', saveScriptFallback);
                 console.log('Save button bound (fallback)');
+            } else {
+                console.error('Save button not found');
             }
             if (downloadButton) {
                 downloadButton.addEventListener('click', downloadCustomScriptFallback);
                 console.log('Download button bound (fallback)');
+            } else {
+                console.error('Download button not found');
             }
         }
 
