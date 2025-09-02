@@ -1,8 +1,14 @@
-/* styles.css */
+/* Import Roboto font */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap');
+
+/* Global styles */
 body {
     font-family: 'Roboto', sans-serif;
+    background-color: #000;
+    color: #fff;
 }
+
+/* Glitch effect */
 .glitch {
     position: relative;
     text-shadow: 
@@ -11,41 +17,25 @@ body {
         0.025em 0.05em 0 rgba(0, 0, 255, 0.75);
     animation: glitch 1s infinite;
 }
+
 .glitch-hover:hover {
     animation: glitch 0.3s infinite;
 }
+
 @keyframes glitch {
-    0% {
+    0%, 14% {
         text-shadow: 
             0.05em 0 0 rgba(255, 0, 0, 0.75),
             -0.05em -0.025em 0 rgba(0, 255, 0, 0.75),
             -0.025em 0.05em 0 rgba(0, 0, 255, 0.75);
     }
-    14% {
-        text-shadow: 
-            0.05em 0 0 rgba(255, 0, 0, 0.75),
-            -0.05em -0.025em 0 rgba(0, 255, 0, 0.75),
-            -0.025em 0.05em 0 rgba(0, 0, 255, 0.75);
-    }
-    15% {
+    15%, 49% {
         text-shadow: 
             -0.05em -0.025em 0 rgba(255, 0, 0, 0.75),
             0.025em 0.025em 0 rgba(0, 255, 0, 0.75),
             -0.05em -0.05em 0 rgba(0, 0, 255, 0.75);
     }
-    49% {
-        text-shadow: 
-            -0.05em -0.025em 0 rgba(255, 0, 0, 0.75),
-            0.025em 0.025em 0 rgba(0, 255, 0, 0.75),
-            -0.05em -0.05em 0 rgba(0, 0, 255, 0.75);
-    }
-    50% {
-        text-shadow: 
-            0.025em 0.05em 0 rgba(255, 0, 0, 0.75),
-            0.05em 0 0 rgba(0, 255, 0, 0.75),
-            0 -0.05em 0 rgba(0, 0, 255, 0.75);
-    }
-    99% {
+    50%, 99% {
         text-shadow: 
             0.025em 0.05em 0 rgba(255, 0, 0, 0.75),
             0.05em 0 0 rgba(0, 255, 0, 0.75),
@@ -58,23 +48,94 @@ body {
             -0.025em -0.05em 0 rgba(0, 0, 255, 0.75);
     }
 }
+
+/* Neon shadow effect */
 .shadow-neon {
     box-shadow: 0 0 10px rgba(0, 255, 255, 0.5), 0 0 20px rgba(255, 0, 255, 0.3);
 }
+
+/* Script card hover effect */
 .script-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
 }
+
 .script-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(0, 255, 255, 0.4);
 }
+
+/* CodeMirror editor styling */
 .CodeMirror {
-    border: 1px solid #cyan-500;
+    border: 2px solid #00d7ff; /* Fixed invalid cyan-500 */
     height: 400px;
     background: #1a1a1a;
     color: #fff;
     border-radius: 0.5rem;
+    z-index: 10;
 }
+
+/* Discord button styling */
+.discord-btn {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
 .discord-btn:hover {
     box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+    transform: scale(1.05);
+}
+
+/* Noscript warning styling */
+.noscript-warning {
+    background: rgba(255, 0, 0, 0.2);
+    border: 2px solid #ff0000;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 1rem auto;
+    max-width: 600px;
+    text-align: center;
+    animation: glitch 1s infinite;
+}
+
+.noscript-warning p:first-child {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #ff3333;
+}
+
+.noscript-warning p:last-child {
+    color: #ccc;
+}
+
+/* Watermark styling for ShadowT3ch */
+.watermark {
+    transition: color 0.3s ease;
+}
+
+.watermark:hover {
+    color: #00ffcc;
+}
+
+/* Error message styling */
+#error-message {
+    background: rgba(255, 0, 0, 0.2);
+    border: 2px solid #ff3333;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Loading spinner */
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+/* Accessibility: Disable animations for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .glitch, .glitch-hover:hover, .noscript-warning {
+        animation: none;
+        text-shadow: none;
+    }
+    .script-card, .discord-btn {
+        transition: none;
+    }
 }
