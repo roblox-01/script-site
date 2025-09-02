@@ -318,26 +318,30 @@ async function copyScript(rawUrl) {
             console.log('Script copied, length:', text.length);
         } catch (clipError) {
             console.error('Clipboard error:', clipError);
-            // Enhanced fallback: Show script in textarea for easy copying
+            // Fallback: Create visible textarea for manual copy
             const textarea = document.createElement('textarea');
             textarea.value = text;
+            textarea.style.width = '80%';
+            textarea.style.height = '200px';
             textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
+            textarea.style.top = '50%';
+            textarea.style.left = '50%';
+            textarea.style.transform = 'translate(-50%, -50%)';
+            textarea.style.zIndex = '1000';
+            textarea.style.background = '#1a1a1a';
+            textarea.style.color = '#fff';
+            textarea.style.border = '2px solid #00d7ff';
+            textarea.style.padding = '10px';
             document.body.appendChild(textarea);
+            textarea.focus();
             textarea.select();
-            try {
-                document.execCommand('copy');
-                alert('Script copied to clipboard (fallback method)!');
-                console.log('Script copied via execCommand');
-            } catch (execError) {
-                console.error('Fallback copy error:', execError);
-                prompt('Clipboard access denied. Copy manually or visit the script URL:', text);
-                alert('If copying failed, visit: ' + rawUrl);
-            }
-            document.body.removeChild(textarea);
+            alert('Clipboard access failed. Please copy the script from the textarea and close it by clicking OK.');
+            // Remove textarea after alert is closed
+            document.addEventListener('click', () => document.body.removeChild(textarea), { once: true });
+            console.log('Displayed textarea for manual copy');
         }
     } catch (error) {
         console.error('Copy script error:', error);
-        alert('Error copying script. Visit: ' + rawUrl);
+        alert('Error fetching script. Visit: ' + rawUrl);
     }
 }
