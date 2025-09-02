@@ -32,7 +32,7 @@ window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// Fallback scripts
+// Fallback scripts (6 scripts)
 const fallbackScripts = [
     {
         _id: "68b60913c5aae50f0bce4671",
@@ -95,43 +95,52 @@ let currentPage = 1;
 let maxPages = 1;
 const pageSize = 6;
 
-// Initialize Ace Editor with retry and fallback
-function initializeEditor(attempts = 5, delay = 500) {
+// Initialize CodeMirror with retry and fallback
+function initializeCodeMirror(attempts = 5, delay = 500) {
     function tryInit(triesLeft) {
         try {
-            const aceEditor = document.getElementById('ace-editor');
-            if (!aceEditor) throw new Error('Ace editor container not found');
-            if (typeof window.ace !== 'object' || !window.ace.edit) {
-                throw new Error('Ace Editor not loaded');
+            // Check if CodeMirror is loaded
+            if (typeof window.CodeMirror !== 'object' || !window.CodeMirror.fromTextArea) {
+                throw new Error('CodeMirror or fromTextArea not loaded');
             }
-            editor = window.ace.edit(aceEditor);
-            editor.setOptions({
-                mode: 'ace/mode/lua',
-                theme: 'ace/theme/monokai',
-                tabSize: 4,
-                useSoftTabs: true,
-                enableBasicAutocompletion: true,
-                enableLiveAutocompletion: true,
+            const codeEditor = document.getElementById('code-editor');
+            if (!codeEditor) throw new Error('Code editor textarea not found');
+            // Initialize CodeMirror
+            editor = window.CodeMirror.fromTextArea(codeEditor, {
+                mode: 'text/x-lua',
+                lineNumbers: true,
+                theme: 'monokai',
+                indentUnit: 4,
+                indentWithTabs: true,
+                extraKeys: { 'Ctrl-Space': 'autocomplete' },
                 readOnly: false,
-                fontSize: 14,
-                wrap: true
+                autofocus: true,
+                lineWrapping: true
             });
+            // Load saved script
             const savedScript = localStorage.getItem('customScript');
-            if (savedScript) editor.setValue(savedScript, -1);
-            aceEditor.style.display = 'block'; // Ensure visibility
-            aceEditor.style.pointerEvents = 'auto';
-            aceEditor.style.zIndex = '10';
-            editor.renderer.updateFull();
-            editor.focus();
-            console.log('Ace Editor initialized successfully');
+            if (savedScript) editor.setValue(savedScript);
+            // Ensure editor is editable and visible
+            const wrapper = editor.getWrapperElement();
+            wrapper.style.pointerEvents = 'auto';
+            wrapper.style.zIndex = '10';
+            wrapper.style.position = 'relative';
+            wrapper.style.minHeight = '400px';
+            wrapper.style.background = '#1a1a1a';
+            wrapper.style.border = '2px solid #00d7ff';
+            wrapper.style.borderRadius = '0.5rem';
+            wrapper.style.padding = '10px';
+            editor.refresh();
+            console.log('CodeMirror initialized successfully');
             return true;
         } catch (error) {
             if (triesLeft <= 1) {
-                console.error('Ace Editor init failed after retries:', error);
+                console.error('CodeMirror init failed after retries:', error);
+                // Fallback: Show a plain textarea
                 const codeEditor = document.getElementById('code-editor');
                 if (codeEditor) {
-                    codeEditor.classList.remove('hidden');
                     codeEditor.style.display = 'block';
+                    codeEditor.style.width = '100%';
                     codeEditor.style.minHeight = '400px';
                     codeEditor.style.background = '#1a1a1a';
                     codeEditor.style.color = '#fff';
@@ -140,22 +149,21 @@ function initializeEditor(attempts = 5, delay = 500) {
                     codeEditor.style.padding = '10px';
                     codeEditor.style.pointerEvents = 'auto';
                     codeEditor.style.zIndex = '10';
+                    codeEditor.readOnly = false;
+                    codeEditor.setAttribute('placeholder', 'Type your Lua script here...');
                     const savedScript = localStorage.getItem('customScript');
                     if (savedScript) codeEditor.value = savedScript;
+                    // Ensure textarea is focused
                     codeEditor.focus();
-                    const aceEditor = document.getElementById('ace-editor');
-                    if (aceEditor) aceEditor.style.display = 'none';
+                    console.log('Fallback textarea displayed');
                 } else {
                     console.error('Textarea element not found');
                 }
-                const errorMessage = document.getElementById('error-message');
-                if (errorMessage) {
-                    errorMessage.textContent = 'Editor failed to load. Using basic textarea.';
-                    errorMessage.style.display = 'block';
-                }
+                document.getElementById('error-message').textContent = 'Editor failed to load. Using basic textarea.';
+                document.getElementById('error-message').style.display = 'block';
                 return false;
             }
-            console.log(`Retrying Ace Editor init (${triesLeft - 1} attempts left)...`);
+            console.log(`Retrying CodeMirror init (${triesLeft - 1} attempts left)...`);
             setTimeout(() => tryInit(triesLeft - 1), delay);
             return false;
         }
@@ -164,56 +172,76 @@ function initializeEditor(attempts = 5, delay = 500) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Check if JavaScript is enabled
     if (typeof window === 'undefined' || !document) {
         console.error('JavaScript appears to be disabled or restricted');
-        const errorMessage = document.getElementById('error-message');
-        if (errorMessage) {
-            errorMessage.textContent = 'Please enable JavaScript to use this site.';
-            errorMessage.style.display = 'block';
-        }
-        const loading = document.getElementById('loading');
-        if (loading) loading.style.display = 'none';
+        document.getElementById('error-message').textContent = 'Please enable JavaScript to use this site.';
+        document.getElementById('error-message').style.display = 'block';
+        document.getElementById('loading').style.display = 'none';
         return;
     }
 
+    // Load scripts first to ensure page renders
     try {
         loadScripts(currentPage);
     } catch (error) {
         console.error('Initial script load error:', error);
-        const errorMessage = document.getElementById('error-message');
-        if (errorMessage) {
-            errorMessage.textContent = 'Error loading scripts. Showing fallback scripts.';
-            errorMessage.style.display = 'block';
-        }
-        const loading = document.getElementById('loading');
-        if (loading) loading.style.display = 'none';
+        document.getElementById('error-message').textContent = 'Error loading scripts. Showing fallback scripts.';
+        document.getElementById('error-message').style.display = 'block';
+        document.getElementById('loading').style.display = 'none';
         renderScripts(fallbackScripts, currentPage);
     }
 
+    // Initialize CodeMirror and buttons
     try {
-        const editorInitialized = initializeEditor();
+        const editorInitialized = initializeCodeMirror();
+        // Bind buttons
         const saveButton = document.getElementById('save-script-btn');
         const downloadButton = document.getElementById('download-script-btn');
         if (editorInitialized) {
-            if (saveButton) saveButton.addEventListener('click', saveScript);
-            if (downloadButton) downloadButton.addEventListener('click', downloadCustomScript);
+            if (saveButton) {
+                saveButton.addEventListener('click', saveScript);
+                console.log('Save button bound (CodeMirror)');
+            } else {
+                console.error('Save button not found');
+            }
+            if (downloadButton) {
+                downloadButton.addEventListener('click', downloadCustomScript);
+                console.log('Download button bound (CodeMirror)');
+            } else {
+                console.error('Download button not found');
+            }
         } else {
-            if (saveButton) saveButton.addEventListener('click', saveScriptFallback);
-            if (downloadButton) downloadButton.addEventListener('click', downloadCustomScriptFallback);
+            // Bind buttons to work with fallback textarea
+            if (saveButton) {
+                saveButton.addEventListener('click', saveScriptFallback);
+                console.log('Save button bound (fallback)');
+            } else {
+                console.error('Save button not found');
+            }
+            if (downloadButton) {
+                downloadButton.addEventListener('click', downloadCustomScriptFallback);
+                console.log('Download button bound (fallback)');
+            } else {
+                console.error('Download button not found');
+            }
         }
+
+        // Bind watermark
         const watermark = document.querySelector('.watermark');
-        if (watermark) watermark.addEventListener('click', () => console.log('Watermark clicked:', watermark.href));
+        if (watermark) {
+            watermark.addEventListener('click', () => console.log('Watermark clicked:', watermark.href));
+        } else {
+            console.error('Watermark not found');
+        }
     } catch (error) {
         console.error('DOMContentLoaded error:', error);
-        const errorMessage = document.getElementById('error-message');
-        if (errorMessage) {
-            errorMessage.textContent = 'Initialization error: ' + error.message;
-            errorMessage.style.display = 'block';
-        }
+        document.getElementById('error-message').textContent = 'Initialization error: ' + error.message;
+        document.getElementById('error-message').style.display = 'block';
     }
 });
 
-// Save script (Ace Editor)
+// Save script (CodeMirror)
 function saveScript() {
     try {
         if (!editor) throw new Error('Editor not initialized');
@@ -242,7 +270,7 @@ function saveScriptFallback() {
     }
 }
 
-// Download script (Ace Editor)
+// Download script (CodeMirror)
 function downloadCustomScript() {
     try {
         if (!editor) throw new Error('Editor not initialized');
@@ -293,8 +321,8 @@ function downloadCustomScriptFallback() {
 async function loadScripts(page) {
     const loading = document.getElementById('loading');
     const errorMessage = document.getElementById('error-message');
-    if (loading) loading.style.display = 'block';
-    if (errorMessage) errorMessage.style.display = 'none';
+    loading.style.display = 'block';
+    errorMessage.style.display = 'none';
     try {
         console.log('Fetching scripts for page:', page);
         const response = await fetch(`https://rscripts.net/api/v2/scripts?page=${page}&orderBy=date&sort=desc`, {
@@ -308,26 +336,24 @@ async function loadScripts(page) {
             throw new Error('No scripts returned from API');
         }
         renderScripts(scripts, page);
+        console.log('Scripts loaded:', scripts.length, 'Max pages:', maxPages);
     } catch (error) {
         console.error('Load scripts error:', error);
-        if (errorMessage) {
-            errorMessage.textContent = 'Failed to load scripts. Showing fallback scripts.';
-            errorMessage.style.display = 'block';
-        }
+        errorMessage.textContent = 'Failed to load scripts. Showing fallback scripts.';
+        errorMessage.style.display = 'block';
         renderScripts(fallbackScripts, page);
     } finally {
-        if (loading) loading.style.display = 'none';
+        loading.style.display = 'none';
     }
 }
 
 // Render scripts
 function renderScripts(scripts, page) {
     try {
-        const start = (page - 1) * pageSize; // Correct pagination
-        const end = start + pageSize;
+        const start = 0;
+        const end = pageSize;
         const pageScripts = scripts.slice(start, end);
         const grid = document.getElementById('script-grid');
-        if (!grid) throw new Error('Script grid not found');
         grid.innerHTML = '';
         if (pageScripts.length === 0) {
             grid.innerHTML = '<p class="text-center text-gray-400">No scripts available for this page.</p>';
@@ -347,23 +373,20 @@ function renderScripts(scripts, page) {
                 `;
                 grid.appendChild(card);
             });
+
             document.querySelectorAll('.copy-script-btn').forEach(btn => {
                 btn.addEventListener('click', () => copyScript(btn.getAttribute('data-url')));
             });
         }
-        const pageInfo = document.getElementById('page-info');
-        if (pageInfo) pageInfo.textContent = `Page ${page} of ${maxPages}`;
-        const prevButton = document.getElementById('prev-page');
-        if (prevButton) prevButton.disabled = page === 1;
-        const nextButton = document.getElementById('next-page');
-        if (nextButton) nextButton.disabled = page >= maxPages;
+
+        document.getElementById('page-info').textContent = `Page ${page} of ${maxPages}`;
+        document.getElementById('prev-page').disabled = page === 1;
+        document.getElementById('next-page').disabled = page >= maxPages;
+        console.log('Rendered page:', page, 'Scripts:', pageScripts.length);
     } catch (error) {
         console.error('Render scripts error:', error);
-        const errorMessage = document.getElementById('error-message');
-        if (errorMessage) {
-            errorMessage.textContent = 'Error rendering scripts.';
-            errorMessage.style.display = 'block';
-        }
+        document.getElementById('error-message').textContent = 'Error rendering scripts.';
+        document.getElementById('error-message').style.display = 'block';
     }
 }
 
@@ -398,6 +421,7 @@ async function copyScript(rawUrl) {
             console.log('Script copied, length:', text.length);
         } catch (clipError) {
             console.error('Clipboard error:', clipError);
+            // Fallback: Show prompt for manual copy
             prompt('Clipboard access failed. Copy the script below or visit the URL:', text);
             alert('If copying failed, visit: ' + rawUrl);
             console.log('Displayed prompt for manual copy');
