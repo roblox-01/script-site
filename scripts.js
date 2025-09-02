@@ -126,6 +126,10 @@ function initializeCodeMirror(attempts = 5, delay = 500) {
             wrapper.style.zIndex = '10';
             wrapper.style.position = 'relative';
             wrapper.style.minHeight = '400px';
+            wrapper.style.background = '#1a1a1a';
+            wrapper.style.border = '2px solid #00d7ff';
+            wrapper.style.borderRadius = '0.5rem';
+            wrapper.style.padding = '10px';
             editor.refresh();
             console.log('CodeMirror initialized successfully');
             return true;
@@ -146,9 +150,14 @@ function initializeCodeMirror(attempts = 5, delay = 500) {
                     codeEditor.style.pointerEvents = 'auto';
                     codeEditor.style.zIndex = '10';
                     codeEditor.readOnly = false;
+                    codeEditor.setAttribute('placeholder', 'Type your Lua script here...');
                     const savedScript = localStorage.getItem('customScript');
                     if (savedScript) codeEditor.value = savedScript;
+                    // Ensure textarea is focused
+                    codeEditor.focus();
                     console.log('Fallback textarea displayed');
+                } else {
+                    console.error('Textarea element not found');
                 }
                 document.getElementById('error-message').textContent = 'Editor failed to load. Using basic textarea.';
                 document.getElementById('error-message').style.display = 'block';
