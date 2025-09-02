@@ -32,7 +32,7 @@ window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// Fallback scripts (minimal, based on provided API data)
+// Fallback scripts
 const fallbackScripts = [
     {
         _id: "68b60913c5aae50f0bce4671",
@@ -61,11 +61,16 @@ const pageSize = 3;
 
 document.addEventListener('DOMContentLoaded', () => {
     try {
+        // Verify CodeMirror is available
+        if (typeof CodeMirror === 'undefined') {
+            throw new Error('CodeMirror library not loaded');
+        }
+
         // Initialize CodeMirror
         editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
-            mode: 'lua',
+            mode: 'text/x-lua',
             lineNumbers: true,
-            theme: 'default', // Change to 'monokai' if theme CSS is included
+            theme: 'monokai', // Using Monokai for sick look
             indentUnit: 4,
             indentWithTabs: true,
             extraKeys: { 'Ctrl-Space': 'autocomplete' }
@@ -88,6 +93,8 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('DOMContentLoaded error:', error);
         document.getElementById('error-message').textContent = 'Initialization error: ' + error.message;
         document.getElementById('error-message').style.display = 'block';
+        document.getElementById('loading').style.display = 'none';
+        renderScripts(fallbackScripts, currentPage); // Load fallback immediately
     }
 });
 
@@ -148,7 +155,7 @@ async function loadScripts(page) {
         console.error('Load scripts error:', error);
         errorMessage.textContent = 'Failed to load scripts: ' + error.message + '. Showing fallback scripts.';
         errorMessage.style.display = 'block';
-        renderScripts(fallbackScripts, page); // Use fallback
+        renderScripts(fallbackScripts, page);
     } finally {
         loading.style.display = 'none';
     }
