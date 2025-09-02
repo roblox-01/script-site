@@ -32,7 +32,7 @@ window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// Fallback scripts (expanded to 6)
+// Fallback scripts (6 scripts)
 const fallbackScripts = [
     {
         _id: "68b60913c5aae50f0bce4671",
@@ -93,52 +93,66 @@ const fallbackScripts = [
 let editor;
 let currentPage = 1;
 let maxPages = 1;
-const pageSize = 6; // Increased to show more scripts
+const pageSize = 6;
 
-// Delayed CodeMirror initialization
-function initializeCodeMirror() {
-    try {
-        if (typeof CodeMirror === 'undefined' || !CodeMirror.fromTextArea) {
-            throw new Error('CodeMirror or fromTextArea not loaded');
+// Delayed CodeMirror initialization with retry
+function initializeCodeMirror(attempts = 5, delay = 500) {
+    return new Promise((resolve, reject) => {
+        function tryInit(triesLeft) {
+            try {
+                if (typeof CodeMirror === 'undefined' || !CodeMirror.fromTextArea) {
+                    throw new Error('CodeMirror or fromTextArea not loaded');
+                }
+                const codeEditor = document.getElementById('code-editor');
+                if (!codeEditor) throw new Error('Code editor textarea not found');
+                editor = CodeMirror.fromTextArea(codeEditor, {
+                    mode: 'text/x-lua',
+                    lineNumbers: true,
+                    theme: 'monokai',
+                    indentUnit: 4,
+                    indentWithTabs: true,
+                    extraKeys: { 'Ctrl-Space': 'autocomplete' }
+                });
+                const savedScript = localStorage.getItem('customScript');
+                if (savedScript) editor.setValue(savedScript);
+                console.log('CodeMirror initialized');
+                resolve(true);
+            } catch (error) {
+                if (triesLeft <= 1) {
+                    console.error('CodeMirror init failed after retries:', error);
+                    document.getElementById('error-message').textContent = 'Editor initialization failed: ' + error.message + '. Showing fallback scripts.';
+                    document.getElementById('error-message').style.display = 'block';
+                    reject(error);
+                } else {
+                    console.log(`Retrying CodeMirror init (${triesLeft - 1} attempts left)...`);
+                    setTimeout(() => tryInit(triesLeft - 1), delay);
+                }
+            }
         }
-        const codeEditor = document.getElementById('code-editor');
-        if (!codeEditor) throw new Error('Code editor textarea not found');
-        editor = CodeMirror.fromTextArea(codeEditor, {
-            mode: 'text/x-lua',
-            lineNumbers: true,
-            theme: 'monokai',
-            indentUnit: 4,
-            indentWithTabs: true,
-            extraKeys: { 'Ctrl-Space': 'autocomplete' }
-        });
-        const savedScript = localStorage.getItem('customScript');
-        if (savedScript) editor.setValue(savedScript);
-        console.log('CodeMirror initialized');
-    } catch (error) {
-        console.error('CodeMirror init error:', error);
-        document.getElementById('error-message').textContent = 'Editor initialization failed: ' + error.message + '. Showing fallback scripts.';
-        document.getElementById('error-message').style.display = 'block';
-        return false;
-    }
-    return true;
+        tryInit(attempts);
+    });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // Delay CodeMirror init to ensure scripts load
-        const initEditor = () => {
-            if (!initializeCodeMirror()) {
-                setTimeout(initEditor, 500); // Retry after 500ms
-            }
-        };
-        initEditor();
+        // Initialize CodeMirror
+        await initializeCodeMirror();
 
         // Bind save and download buttons
-        const saveButton = document.querySelector('button[onclick="saveScript()"]');
-        const downloadButton = document.querySelector('button[onclick="downloadCustomScript()"]');
-        if (saveButton) saveButton.addEventListener('click', saveScript);
-        if (downloadButton) downloadButton.addEventListener('click', downloadCustomScript);
-        console.log('Buttons bound:', { saveButton, downloadButton });
+        const saveButton = document.getElementById('save-script-btn');
+        const downloadButton = document.getElementById('download-script-btn');
+        if (saveButton) {
+            saveButton.addEventListener('click', saveScript);
+            console.log('Save button bound');
+        } else {
+            console.error('Save button not found');
+        }
+        if (downloadButton) {
+            downloadButton.addEventListener('click', downloadCustomScript);
+            console.log('Download button bound');
+        } else {
+            console.error('Download button not found');
+        }
 
         // Load scripts
         loadScripts(currentPage);
@@ -146,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Verify watermark
         const watermark = document.querySelector('.watermark');
         if (watermark) {
-            watermark.addEventListener('click', (e) => {
+            watermark.addEventListener('click', () => {
                 console.log('Watermark clicked, navigating to:', watermark.href);
             });
         } else {
@@ -302,7 +316,6 @@ async function copyScript(rawUrl) {
             console.log('Script copied, length:', text.length);
         } catch (clipError) {
             console.error('Clipboard error:', clipError);
-            // Fallback: Prompt user to copy manually
             prompt('Clipboard access denied. Copy the script manually:', text);
         }
     } catch (error) {
