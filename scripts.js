@@ -32,7 +32,7 @@ window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// Fallback scripts
+// Fallback scripts (expanded to 6)
 const fallbackScripts = [
     {
         _id: "68b60913c5aae50f0bce4671",
@@ -51,34 +51,87 @@ const fallbackScripts = [
         keySystem: false,
         image: "https://rscripts.net/assets/scripts/68b5e39ac5aae50f0b8b785c_1756750746418_mwpCbNLxI8.webp",
         rawScript: "https://rscripts.net/raw/insta-kill-op-script_1756750746337_qEIbUuV0tK.txt"
+    },
+    {
+        _id: "mock1",
+        title: "Auto Farm Script",
+        description: "Automates resource farming in multiple Roblox games.",
+        views: 50,
+        keySystem: false,
+        image: "https://via.placeholder.com/480x270?text=Auto+Farm",
+        rawScript: "https://rscripts.net/raw/mock-script1.txt"
+    },
+    {
+        _id: "mock2",
+        title: "Speed Hack",
+        description: "Boost your character's speed in Roblox games!",
+        views: 75,
+        keySystem: true,
+        image: "https://via.placeholder.com/480x270?text=Speed+Hack",
+        rawScript: "https://rscripts.net/raw/mock-script2.txt"
+    },
+    {
+        _id: "mock3",
+        title: "ESP Script",
+        description: "See players and items through walls with this ESP script.",
+        views: 90,
+        keySystem: false,
+        image: "https://via.placeholder.com/480x270?text=ESP+Script",
+        rawScript: "https://rscripts.net/raw/mock-script3.txt"
+    },
+    {
+        _id: "mock4",
+        title: "Teleport GUI",
+        description: "Teleport to any location with an easy-to-use GUI.",
+        views: 120,
+        keySystem: true,
+        image: "https://via.placeholder.com/480x270?text=Teleport+GUI",
+        rawScript: "https://rscripts.net/raw/mock-script4.txt"
     }
 ];
 
 let editor;
 let currentPage = 1;
 let maxPages = 1;
-const pageSize = 3;
+const pageSize = 6; // Increased to show more scripts
 
-document.addEventListener('DOMContentLoaded', () => {
+// Delayed CodeMirror initialization
+function initializeCodeMirror() {
     try {
-        // Verify CodeMirror is available
-        if (typeof CodeMirror === 'undefined') {
-            throw new Error('CodeMirror library not loaded');
+        if (typeof CodeMirror === 'undefined' || !CodeMirror.fromTextArea) {
+            throw new Error('CodeMirror or fromTextArea not loaded');
         }
-
-        // Initialize CodeMirror
-        editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
+        const codeEditor = document.getElementById('code-editor');
+        if (!codeEditor) throw new Error('Code editor textarea not found');
+        editor = CodeMirror.fromTextArea(codeEditor, {
             mode: 'text/x-lua',
             lineNumbers: true,
-            theme: 'monokai', // Using Monokai for sick look
+            theme: 'monokai',
             indentUnit: 4,
             indentWithTabs: true,
             extraKeys: { 'Ctrl-Space': 'autocomplete' }
         });
-
-        // Load saved script
         const savedScript = localStorage.getItem('customScript');
         if (savedScript) editor.setValue(savedScript);
+        console.log('CodeMirror initialized');
+    } catch (error) {
+        console.error('CodeMirror init error:', error);
+        document.getElementById('error-message').textContent = 'Editor initialization failed: ' + error.message + '. Showing fallback scripts.';
+        document.getElementById('error-message').style.display = 'block';
+        return false;
+    }
+    return true;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        // Delay CodeMirror init to ensure scripts load
+        const initEditor = () => {
+            if (!initializeCodeMirror()) {
+                setTimeout(initEditor, 500); // Retry after 500ms
+            }
+        };
+        initEditor();
 
         // Bind save and download buttons
         const saveButton = document.querySelector('button[onclick="saveScript()"]');
@@ -89,18 +142,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Load scripts
         loadScripts(currentPage);
+
+        // Verify watermark
+        const watermark = document.querySelector('.watermark');
+        if (watermark) {
+            watermark.addEventListener('click', (e) => {
+                console.log('Watermark clicked, navigating to:', watermark.href);
+            });
+        } else {
+            console.error('Watermark element not found');
+        }
     } catch (error) {
         console.error('DOMContentLoaded error:', error);
-        document.getElementById('error-message').textContent = 'Initialization error: ' + error.message;
+        document.getElementById('error-message').textContent = 'Initialization error: ' + error.message + '. Showing fallback scripts.';
         document.getElementById('error-message').style.display = 'block';
         document.getElementById('loading').style.display = 'none';
-        renderScripts(fallbackScripts, currentPage); // Load fallback immediately
+        renderScripts(fallbackScripts, currentPage);
     }
 });
 
 // Save script function
 function saveScript() {
     try {
+        if (!editor) throw new Error('Editor not initialized');
         const script = editor.getValue();
         localStorage.setItem('customScript', script);
         alert('Script saved to local storage!');
@@ -114,6 +178,7 @@ function saveScript() {
 // Download script function
 function downloadCustomScript() {
     try {
+        if (!editor) throw new Error('Editor not initialized');
         const code = editor.getValue();
         if (!code) {
             alert('No script to download!');
@@ -141,7 +206,9 @@ async function loadScripts(page) {
     errorMessage.style.display = 'none';
     try {
         console.log('Fetching scripts for page:', page);
-        const response = await fetch(`https://rscripts.net/api/v2/scripts?page=${page}&orderBy=date&sort=desc`);
+        const response = await fetch(`https://rscripts.net/api/v2/scripts?page=${page}&orderBy=date&sort=desc`, {
+            headers: { 'Accept': 'application/json' }
+        });
         if (!response.ok) throw new Error(`API request failed: ${response.status}`);
         const data = await response.json();
         maxPages = data.info.maxPages || 1;
@@ -229,23 +296,17 @@ async function copyScript(rawUrl) {
         const response = await fetch(rawUrl);
         if (!response.ok) throw new Error(`Failed to fetch script: ${response.status}`);
         const text = await response.text();
-        await navigator.clipboard.writeText(text);
-        alert('Script copied to clipboard!');
-        console.log('Script copied, length:', text.length);
+        try {
+            await navigator.clipboard.writeText(text);
+            alert('Script copied to clipboard!');
+            console.log('Script copied, length:', text.length);
+        } catch (clipError) {
+            console.error('Clipboard error:', clipError);
+            // Fallback: Prompt user to copy manually
+            prompt('Clipboard access denied. Copy the script manually:', text);
+        }
     } catch (error) {
         console.error('Copy script error:', error);
-        alert('Error copying script: ' + error.message);
+        alert('Error copying script: ' + error.message + '. Try accessing the script URL directly: ' + rawUrl);
     }
 }
-
-// Verify ShadowT3ch watermark
-document.addEventListener('DOMContentLoaded', () => {
-    const watermark = document.querySelector('.watermark');
-    if (watermark) {
-        watermark.addEventListener('click', (e) => {
-            console.log('Watermark clicked, navigating to:', watermark.href);
-        });
-    } else {
-        console.error('Watermark element not found');
-    }
-});
