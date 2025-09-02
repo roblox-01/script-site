@@ -1,4 +1,4 @@
-// Background particle effect
+// Background particle effect (sick starfield)
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), alpha: true });
@@ -32,7 +32,7 @@ window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// Fallback scripts (6 scripts)
+// Fallback scripts
 const fallbackScripts = [
     {
         _id: "68b60913c5aae50f0bce4671",
@@ -51,144 +51,72 @@ const fallbackScripts = [
         keySystem: false,
         image: "https://rscripts.net/assets/scripts/68b5e39ac5aae50f0b8b785c_1756750746418_mwpCbNLxI8.webp",
         rawScript: "https://rscripts.net/raw/insta-kill-op-script_1756750746337_qEIbUuV0tK.txt"
-    },
-    {
-        _id: "mock1",
-        title: "Auto Farm Script",
-        description: "Automates resource farming in multiple Roblox games.",
-        views: 50,
-        keySystem: false,
-        image: "https://via.placeholder.com/480x270?text=Auto+Farm",
-        rawScript: "https://rscripts.net/raw/mock-script1.txt"
-    },
-    {
-        _id: "mock2",
-        title: "Speed Hack",
-        description: "Boost your character's speed in Roblox games!",
-        views: 75,
-        keySystem: true,
-        image: "https://via.placeholder.com/480x270?text=Speed+Hack",
-        rawScript: "https://rscripts.net/raw/mock-script2.txt"
-    },
-    {
-        _id: "mock3",
-        title: "ESP Script",
-        description: "See players and items through walls with this ESP script.",
-        views: 90,
-        keySystem: false,
-        image: "https://via.placeholder.com/480x270?text=ESP+Script",
-        rawScript: "https://rscripts.net/raw/mock-script3.txt"
-    },
-    {
-        _id: "mock4",
-        title: "Teleport GUI",
-        description: "Teleport to any location with an easy-to-use GUI.",
-        views: 120,
-        keySystem: true,
-        image: "https://via.placeholder.com/480x270?text=Teleport+GUI",
-        rawScript: "https://rscripts.net/raw/mock-script4.txt"
     }
 ];
 
 let editor;
 let currentPage = 1;
 let maxPages = 1;
-const pageSize = 6;
+const pageSize = 3;
 
-// Initialize CodeMirror with retry
-function initializeCodeMirror(attempts = 5, delay = 500) {
-    return new Promise((resolve, reject) => {
-        function tryInit(triesLeft) {
-            try {
-                if (typeof window.CodeMirror === 'undefined' || !window.CodeMirror.fromTextArea) {
-                    throw new Error('CodeMirror or fromTextArea not loaded');
-                }
-                const codeEditor = document.getElementById('code-editor');
-                if (!codeEditor) throw new Error('Code editor textarea not found');
-                editor = window.CodeMirror.fromTextArea(codeEditor, {
-                    mode: 'text/x-lua',
-                    lineNumbers: true,
-                    theme: 'monokai',
-                    indentUnit: 4,
-                    indentWithTabs: true,
-                    extraKeys: { 'Ctrl-Space': 'autocomplete' }
-                });
-                const savedScript = localStorage.getItem('customScript');
-                if (savedScript) editor.setValue(savedScript);
-                console.log('CodeMirror initialized');
-                resolve(true);
-            } catch (error) {
-                if (triesLeft <= 1) {
-                    console.error('CodeMirror init failed after retries:', error);
-                    document.getElementById('error-message').textContent = 'Editor failed to load. Showing scripts only.';
-                    document.getElementById('error-message').style.display = 'block';
-                    reject(error);
-                } else {
-                    console.log(`Retrying CodeMirror init (${triesLeft - 1} attempts left)...`);
-                    setTimeout(() => tryInit(triesLeft - 1), delay);
-                }
-            }
-        }
-        tryInit(attempts);
-    });
-}
-
-document.addEventListener('DOMContentLoaded', async () => {
-    // Load scripts immediately to ensure page renders
-    loadScripts(currentPage);
-
+document.addEventListener('DOMContentLoaded', () => {
     try {
+        // Verify CodeMirror
+        if (typeof CodeMirror === 'undefined' || !CodeMirror.fromTextArea) {
+            throw new Error('CodeMirror or fromTextArea not loaded');
+        }
+
         // Initialize CodeMirror
-        await initializeCodeMirror();
+        const codeEditor = document.getElementById('code-editor');
+        if (!codeEditor) throw new Error('Code editor textarea not found');
+        editor = CodeMirror.fromTextArea(codeEditor, {
+            mode: 'text/x-lua',
+            lineNumbers: true,
+            theme: 'monokai',
+            indentUnit: 4,
+            indentWithTabs: true,
+            extraKeys: { 'Ctrl-Space': 'autocomplete' }
+        });
 
-        // Bind buttons
-        const saveButton = document.getElementById('save-script-btn');
-        const downloadButton = document.getElementById('download-script-btn');
-        if (saveButton) {
-            saveButton.addEventListener('click', saveScript);
-            console.log('Save button bound');
-        } else {
-            console.error('Save button not found');
-        }
-        if (downloadButton) {
-            downloadButton.addEventListener('click', downloadCustomScript);
-            console.log('Download button bound');
-        } else {
-            console.error('Download button not found');
-        }
+        // Load saved script
+        const savedScript = localStorage.getItem('customScript');
+        if (savedScript) editor.setValue(savedScript);
 
-        // Verify watermark
-        const watermark = document.querySelector('.watermark');
-        if (watermark) {
-            watermark.addEventListener('click', () => console.log('Watermark clicked:', watermark.href));
-        } else {
-            console.error('Watermark not found');
-        }
+        // Bind save and download buttons
+        const saveButton = document.querySelector('button[onclick="saveScript()"]');
+        const downloadButton = document.querySelector('button[onclick="downloadCustomScript()"]');
+        if (saveButton) saveButton.addEventListener('click', saveScript);
+        if (downloadButton) downloadButton.addEventListener('click', downloadCustomScript);
+        console.log('Buttons bound:', { saveButton, downloadButton });
+
+        // Load scripts
+        loadScripts(currentPage);
     } catch (error) {
         console.error('DOMContentLoaded error:', error);
-        document.getElementById('error-message').textContent = 'Initialization error: ' + error.message;
-        document.getElementById('error-message').style.display = 'block';
+        const errorMessage = document.getElementById('error-message');
+        errorMessage.textContent = 'Initialization error: ' + error.message + '. Showing fallback scripts.';
+        errorMessage.style.display = 'block';
+        document.getElementById('loading').style.display = 'none';
+        renderScripts(fallbackScripts, currentPage);
     }
 });
 
-// Save script
+// Save script function
 function saveScript() {
     try {
-        if (!editor) throw new Error('Editor not initialized');
         const script = editor.getValue();
         localStorage.setItem('customScript', script);
         alert('Script saved to local storage!');
         console.log('Script saved:', script.substring(0, 50) + '...');
     } catch (error) {
         console.error('Save script error:', error);
-        alert('Error saving script: Editor may not have loaded.');
+        alert('Error saving script: ' + error.message);
     }
 }
 
-// Download script
+// Download script function
 function downloadCustomScript() {
     try {
-        if (!editor) throw new Error('Editor not initialized');
         const code = editor.getValue();
         if (!code) {
             alert('No script to download!');
@@ -204,11 +132,11 @@ function downloadCustomScript() {
         console.log('Script downloaded');
     } catch (error) {
         console.error('Download script error:', error);
-        alert('Error downloading script: Editor may not have loaded.');
+        alert('Error downloading script: ' + error.message);
     }
 }
 
-// Load scripts
+// Load scripts from API
 async function loadScripts(page) {
     const loading = document.getElementById('loading');
     const errorMessage = document.getElementById('error-message');
@@ -230,7 +158,7 @@ async function loadScripts(page) {
         console.log('Scripts loaded:', scripts.length, 'Max pages:', maxPages);
     } catch (error) {
         console.error('Load scripts error:', error);
-        errorMessage.textContent = 'Failed to load scripts. Showing fallback scripts.';
+        errorMessage.textContent = 'Failed to load scripts: ' + error.message + '. Showing fallback scripts.';
         errorMessage.style.display = 'block';
         renderScripts(fallbackScripts, page);
     } finally {
@@ -238,7 +166,7 @@ async function loadScripts(page) {
     }
 }
 
-// Render scripts
+// Render scripts for current page
 function renderScripts(scripts, page) {
     try {
         const start = 0;
@@ -265,6 +193,7 @@ function renderScripts(scripts, page) {
                 grid.appendChild(card);
             });
 
+            // Bind copy buttons
             document.querySelectorAll('.copy-script-btn').forEach(btn => {
                 btn.addEventListener('click', () => copyScript(btn.getAttribute('data-url')));
             });
@@ -276,17 +205,17 @@ function renderScripts(scripts, page) {
         console.log('Rendered page:', page, 'Scripts:', pageScripts.length);
     } catch (error) {
         console.error('Render scripts error:', error);
-        document.getElementById('error-message').textContent = 'Error rendering scripts.';
+        document.getElementById('error-message').textContent = 'Error rendering scripts: ' + error.message;
         document.getElementById('error-message').style.display = 'block';
     }
 }
 
-// Pagination
+// Pagination events
 document.getElementById('prev-page').addEventListener('click', () => {
     if (currentPage > 1) {
         currentPage--;
         loadScripts(currentPage);
-        console.log('Previous page:', currentPage);
+        console.log('Previous page clicked:', currentPage);
     }
 });
 
@@ -294,27 +223,34 @@ document.getElementById('next-page').addEventListener('click', () => {
     if (currentPage < maxPages) {
         currentPage++;
         loadScripts(currentPage);
-        console.log('Next page:', currentPage);
+        console.log('Next page clicked:', currentPage);
     }
 });
 
-// Copy script
+// Copy script from raw URL
 async function copyScript(rawUrl) {
     try {
         console.log('Copying script from:', rawUrl);
         const response = await fetch(rawUrl);
         if (!response.ok) throw new Error(`Failed to fetch script: ${response.status}`);
         const text = await response.text();
-        try {
-            await navigator.clipboard.writeText(text);
-            alert('Script copied to clipboard!');
-            console.log('Script copied, length:', text.length);
-        } catch (clipError) {
-            console.error('Clipboard error:', clipError);
-            prompt('Clipboard access denied. Copy manually:', text);
-        }
+        await navigator.clipboard.writeText(text);
+        alert('Script copied to clipboard!');
+        console.log('Script copied, length:', text.length);
     } catch (error) {
         console.error('Copy script error:', error);
-        alert('Error copying script. Try accessing: ' + rawUrl);
+        alert('Error copying script: ' + error.message + '. Try accessing the script URL directly.');
     }
 }
+
+// Verify ShadowT3ch watermark
+document.addEventListener('DOMContentLoaded', () => {
+    const watermark = document.querySelector('.watermark');
+    if (watermark) {
+        watermark.addEventListener('click', (e) => {
+            console.log('Watermark clicked, navigating to:', watermark.href);
+        });
+    } else {
+        console.error('Watermark element not found');
+    }
+});
