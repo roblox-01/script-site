@@ -1,4 +1,4 @@
-// Background particle effect (sick starfield)
+// Background particle effect
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), alpha: true });
@@ -95,17 +95,17 @@ let currentPage = 1;
 let maxPages = 1;
 const pageSize = 6;
 
-// Delayed CodeMirror initialization with retry
+// Initialize CodeMirror with retry
 function initializeCodeMirror(attempts = 5, delay = 500) {
     return new Promise((resolve, reject) => {
         function tryInit(triesLeft) {
             try {
-                if (typeof CodeMirror === 'undefined' || !CodeMirror.fromTextArea) {
+                if (typeof window.CodeMirror === 'undefined' || !window.CodeMirror.fromTextArea) {
                     throw new Error('CodeMirror or fromTextArea not loaded');
                 }
                 const codeEditor = document.getElementById('code-editor');
                 if (!codeEditor) throw new Error('Code editor textarea not found');
-                editor = CodeMirror.fromTextArea(codeEditor, {
+                editor = window.CodeMirror.fromTextArea(codeEditor, {
                     mode: 'text/x-lua',
                     lineNumbers: true,
                     theme: 'monokai',
@@ -120,7 +120,7 @@ function initializeCodeMirror(attempts = 5, delay = 500) {
             } catch (error) {
                 if (triesLeft <= 1) {
                     console.error('CodeMirror init failed after retries:', error);
-                    document.getElementById('error-message').textContent = 'Editor initialization failed: ' + error.message + '. Showing fallback scripts.';
+                    document.getElementById('error-message').textContent = 'Editor failed to load. Showing scripts only.';
                     document.getElementById('error-message').style.display = 'block';
                     reject(error);
                 } else {
@@ -134,11 +134,14 @@ function initializeCodeMirror(attempts = 5, delay = 500) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Load scripts immediately to ensure page renders
+    loadScripts(currentPage);
+
     try {
         // Initialize CodeMirror
         await initializeCodeMirror();
 
-        // Bind save and download buttons
+        // Bind buttons
         const saveButton = document.getElementById('save-script-btn');
         const downloadButton = document.getElementById('download-script-btn');
         if (saveButton) {
@@ -154,28 +157,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Download button not found');
         }
 
-        // Load scripts
-        loadScripts(currentPage);
-
         // Verify watermark
         const watermark = document.querySelector('.watermark');
         if (watermark) {
-            watermark.addEventListener('click', () => {
-                console.log('Watermark clicked, navigating to:', watermark.href);
-            });
+            watermark.addEventListener('click', () => console.log('Watermark clicked:', watermark.href));
         } else {
-            console.error('Watermark element not found');
+            console.error('Watermark not found');
         }
     } catch (error) {
         console.error('DOMContentLoaded error:', error);
-        document.getElementById('error-message').textContent = 'Initialization error: ' + error.message + '. Showing fallback scripts.';
+        document.getElementById('error-message').textContent = 'Initialization error: ' + error.message;
         document.getElementById('error-message').style.display = 'block';
-        document.getElementById('loading').style.display = 'none';
-        renderScripts(fallbackScripts, currentPage);
     }
 });
 
-// Save script function
+// Save script
 function saveScript() {
     try {
         if (!editor) throw new Error('Editor not initialized');
@@ -185,11 +181,11 @@ function saveScript() {
         console.log('Script saved:', script.substring(0, 50) + '...');
     } catch (error) {
         console.error('Save script error:', error);
-        alert('Error saving script: ' + error.message);
+        alert('Error saving script: Editor may not have loaded.');
     }
 }
 
-// Download script function
+// Download script
 function downloadCustomScript() {
     try {
         if (!editor) throw new Error('Editor not initialized');
@@ -208,11 +204,11 @@ function downloadCustomScript() {
         console.log('Script downloaded');
     } catch (error) {
         console.error('Download script error:', error);
-        alert('Error downloading script: ' + error.message);
+        alert('Error downloading script: Editor may not have loaded.');
     }
 }
 
-// Load scripts from API
+// Load scripts
 async function loadScripts(page) {
     const loading = document.getElementById('loading');
     const errorMessage = document.getElementById('error-message');
@@ -234,7 +230,7 @@ async function loadScripts(page) {
         console.log('Scripts loaded:', scripts.length, 'Max pages:', maxPages);
     } catch (error) {
         console.error('Load scripts error:', error);
-        errorMessage.textContent = 'Failed to load scripts: ' + error.message + '. Showing fallback scripts.';
+        errorMessage.textContent = 'Failed to load scripts. Showing fallback scripts.';
         errorMessage.style.display = 'block';
         renderScripts(fallbackScripts, page);
     } finally {
@@ -242,7 +238,7 @@ async function loadScripts(page) {
     }
 }
 
-// Render scripts for current page
+// Render scripts
 function renderScripts(scripts, page) {
     try {
         const start = 0;
@@ -269,7 +265,6 @@ function renderScripts(scripts, page) {
                 grid.appendChild(card);
             });
 
-            // Bind copy buttons
             document.querySelectorAll('.copy-script-btn').forEach(btn => {
                 btn.addEventListener('click', () => copyScript(btn.getAttribute('data-url')));
             });
@@ -281,17 +276,17 @@ function renderScripts(scripts, page) {
         console.log('Rendered page:', page, 'Scripts:', pageScripts.length);
     } catch (error) {
         console.error('Render scripts error:', error);
-        document.getElementById('error-message').textContent = 'Error rendering scripts: ' + error.message;
+        document.getElementById('error-message').textContent = 'Error rendering scripts.';
         document.getElementById('error-message').style.display = 'block';
     }
 }
 
-// Pagination events
+// Pagination
 document.getElementById('prev-page').addEventListener('click', () => {
     if (currentPage > 1) {
         currentPage--;
         loadScripts(currentPage);
-        console.log('Previous page clicked:', currentPage);
+        console.log('Previous page:', currentPage);
     }
 });
 
@@ -299,11 +294,11 @@ document.getElementById('next-page').addEventListener('click', () => {
     if (currentPage < maxPages) {
         currentPage++;
         loadScripts(currentPage);
-        console.log('Next page clicked:', currentPage);
+        console.log('Next page:', currentPage);
     }
 });
 
-// Copy script from raw URL
+// Copy script
 async function copyScript(rawUrl) {
     try {
         console.log('Copying script from:', rawUrl);
@@ -316,10 +311,10 @@ async function copyScript(rawUrl) {
             console.log('Script copied, length:', text.length);
         } catch (clipError) {
             console.error('Clipboard error:', clipError);
-            prompt('Clipboard access denied. Copy the script manually:', text);
+            prompt('Clipboard access denied. Copy manually:', text);
         }
     } catch (error) {
         console.error('Copy script error:', error);
-        alert('Error copying script: ' + error.message + '. Try accessing the script URL directly: ' + rawUrl);
+        alert('Error copying script. Try accessing: ' + rawUrl);
     }
 }
