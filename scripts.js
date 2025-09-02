@@ -115,7 +115,7 @@ function initializeCodeMirror(attempts = 5, delay = 500) {
                 extraKeys: { 'Ctrl-Space': 'autocomplete' },
                 readOnly: false,
                 autofocus: true,
-                lineWrapping: true // Ensure text wraps for usability
+                lineWrapping: true
             });
             // Load saved script
             const savedScript = localStorage.getItem('customScript');
@@ -125,6 +125,7 @@ function initializeCodeMirror(attempts = 5, delay = 500) {
             wrapper.style.pointerEvents = 'auto';
             wrapper.style.zIndex = '10';
             wrapper.style.position = 'relative';
+            wrapper.style.minHeight = '400px';
             editor.refresh();
             console.log('CodeMirror initialized successfully');
             return true;
@@ -136,7 +137,7 @@ function initializeCodeMirror(attempts = 5, delay = 500) {
                 if (codeEditor) {
                     codeEditor.style.display = 'block';
                     codeEditor.style.width = '100%';
-                    codeEditor.style.height = '400px';
+                    codeEditor.style.minHeight = '400px';
                     codeEditor.style.background = '#1a1a1a';
                     codeEditor.style.color = '#fff';
                     codeEditor.style.border = '2px solid #00d7ff';
@@ -185,19 +186,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize CodeMirror and buttons
     try {
         const editorInitialized = initializeCodeMirror();
-        // Bind buttons, overriding onclick attributes
+        // Bind buttons
         const saveButton = document.getElementById('save-script-btn');
         const downloadButton = document.getElementById('download-script-btn');
         if (editorInitialized) {
             if (saveButton) {
-                saveButton.removeAttribute('onclick'); // Remove inline onclick
                 saveButton.addEventListener('click', saveScript);
                 console.log('Save button bound (CodeMirror)');
             } else {
                 console.error('Save button not found');
             }
             if (downloadButton) {
-                downloadButton.removeAttribute('onclick'); // Remove inline onclick
                 downloadButton.addEventListener('click', downloadCustomScript);
                 console.log('Download button bound (CodeMirror)');
             } else {
@@ -206,14 +205,12 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // Bind buttons to work with fallback textarea
             if (saveButton) {
-                saveButton.removeAttribute('onclick'); // Remove inline onclick
                 saveButton.addEventListener('click', saveScriptFallback);
                 console.log('Save button bound (fallback)');
             } else {
                 console.error('Save button not found');
             }
             if (downloadButton) {
-                downloadButton.removeAttribute('onclick'); // Remove inline onclick
                 downloadButton.addEventListener('click', downloadCustomScriptFallback);
                 console.log('Download button bound (fallback)');
             } else {
