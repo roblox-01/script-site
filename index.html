@@ -7,12 +7,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="codemirror/lib/codemirror.css">
+    <!-- Optional: Add for dark theme <link rel="stylesheet" href="codemirror/theme/monokai.css"> -->
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-black text-white overflow-x-hidden">
     <canvas id="bg-canvas" class="fixed top-0 left-0 w-full h-full -z-10"></canvas>
 
-    <nav class="bg-opacity-80 bg-gray-900 sticky top-0 z-50">
+    <nav class="bg-opacity-80 bg-gray-900 sticky top-0 z-50 shadow-neon">
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
             <a href="#" class="text-3xl font-extrabold glitch">TheScriptSite</a>
             <div class="space-x-8">
@@ -46,7 +47,7 @@
         </div>
     </section>
 
-    <section id="create" class="container mx-auto my-16 bg-opacity-90 bg-gray-900 p-10 rounded-2xl">
+    <section id="create" class="container mx-auto my-16 bg-opacity-90 bg-gray-900 p-10 rounded-2xl shadow-neon">
         <h2 class="text-4xl font-bold text-center mb-12 glitch">Create Your Script</h2>
         <textarea id="code-editor" class="w-full rounded-2xl"></textarea>
         <div class="text-center mt-6">
@@ -59,23 +60,23 @@
         <h2 class="text-4xl font-bold text-center mb-12 glitch">Tutorials</h2>
         <p class="text-center mb-6 text-lg">Master Roblox executors with these guides:</p>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <a href="https://www.youtube.com/watch?v=delta-tutorial-placeholder" target="_blank" class="bg-gray-800 p-6 rounded-lg hover:bg-gray-700 transition script-card">
-                <h3 class="text-2xl font-bold mb-2">Delta Executor Tutorial</h3>
+            <a href="https://www.youtube.com/watch?v=e3lUvnIZV9I" target="_blank" class="bg-gray-800 p-6 rounded-lg hover:bg-gray-700 transition script-card shadow-neon">
+                <h3 class="text-2xl font-bold mb-2 glitch-hover">Delta Executor Tutorial</h3>
                 <p>Step-by-step guide to download and use Delta Executor.</p>
             </a>
-            <a href="https://www.youtube.com/watch?v=xeno-tutorial-placeholder" target="_blank" class="bg-gray-800 p-6 rounded-lg hover:bg-gray-700 transition script-card">
-                <h3 class="text-2xl font-bold mb-2">Xeno Executor Tutorial</h3>
+            <a href="https://www.youtube.com/watch?v=gUD2xOt0NEQ" target="_blank" class="bg-gray-800 p-6 rounded-lg hover:bg-gray-700 transition script-card shadow-neon">
+                <h3 class="text-2xl font-bold mb-2 glitch-hover">Xeno Executor Tutorial</h3>
                 <p>Learn how to set up Xeno Executor for your scripts.</p>
             </a>
         </div>
     </section>
 
-    <section id="owner" class="container mx-auto my-16 bg-gradient-to-r from-purple-600 to-cyan-500 p-10 rounded-2xl text-center">
+    <section id="owner" class="container mx-auto my-16 bg-gradient-to-r from-purple-600 to-cyan-500 p-10 rounded-2xl text-center shadow-neon">
         <h2 class="text-4xl font-bold mb-6 glitch">Site Owner</h2>
         <p class="text-xl">TheScriptSite is crafted by <span class="font-extrabold text-cyan-300 glitch">anoob0970</span>, the mastermind behind this AI-powered hub. Join the Discord for epic updates!</p>
     </section>
 
-    <footer class="bg-gray-900 text-center py-8 relative">
+    <footer class="bg-gray-900 text-center py-8 relative shadow-neon">
         <a href="https://discord.gg/4Fyau7UH" target="_blank" class="mt-4 inline-block">
             <i class="fab fa-discord fa-3x text-cyan-400 hover:text-cyan-300 transition"></i>
         </a>
