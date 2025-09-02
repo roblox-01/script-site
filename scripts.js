@@ -1,221 +1,179 @@
-// Expanded fallback dataset for scripts
-const fallbackScripts = [
-    { _id: '1', title: 'Auto Farm Script', description: 'Automate farming in Roblox games.', script: `-- Auto Farm Script\nlocal player = game.Players.LocalPlayer\nwhile true do\n    wait(1)\n    player.Character.Humanoid.WalkSpeed = 100\n    print("Farming...")\nend` },
-    { _id: '2', title: 'ESP Script', description: 'See players through walls.', script: `-- ESP Script\nlocal esp = loadstring(game:HttpGet("https://example.com/esp.lua"))()\nesp:Toggle(true)` },
-    { _id: '3', title: 'Teleport Hack', description: 'Teleport across the map.', script: `-- Teleport Script\nlocal player = game.Players.LocalPlayer\nplayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, 100, 0)` },
-    { _id: '4', title: 'Speed Boost', description: 'Increase your movement speed.', script: `-- Speed Boost\nlocal player = game.Players.LocalPlayer\nplayer.Character.Humanoid.WalkSpeed = 50` },
-    { _id: '5', title: 'Infinite Jump', description: 'Jump endlessly in any game.', script: `-- Infinite Jump\nlocal player = game.Players.LocalPlayer\nUserInputService.JumpRequest:Connect(function()\n    player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)\nend)` },
-    { _id: '6', title: 'Fly Hack', description: 'Fly around the map.', script: `-- Fly Hack\nlocal player = game.Players.LocalPlayer\nplayer.Character.HumanoidRootPart.Anchored = false\nplayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Flying)` }
-];
-
-let currentPage = 1;
-const maxPerPage = 10; // Adjusted to match typical API page size based on sample data
-
-// Initialize CodeMirror
-const editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
-    mode: 'lua',
-    theme: 'monokai',
-    lineNumbers: true,
-    autoCloseBrackets: true,
-    viewportMargin: Infinity
-});
-
-// Three.js particle background
+// Background particle effect (sick starfield)
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-camera.position.z = 30;
+document.body.appendChild(renderer.domElement);
 
-const particles = new THREE.BufferGeometry();
-const particleCount = 1000;
-const posArray = new Float32Array(particleCount * 3);
-for (let i = 0; i < particleCount * 3; i++) {
-    posArray[i] = (Math.random() - 0.5) * 100;
+const geometry = new THREE.BufferGeometry();
+const vertices = [];
+for (let i = 0; i < 10000; i++) {
+    vertices.push((Math.random() - 0.5) * 2000);
+    vertices.push((Math.random() - 0.5) * 2000);
+    vertices.push((Math.random() - 0.5) * 2000);
 }
-particles.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-const material = new THREE.PointsMaterial({ color: 0x00f6ff, size: 0.2 });
-const particleSystem = new THREE.Points(particles, material);
-scene.add(particleSystem);
+geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+const material = new THREE.PointsMaterial({ color: 0x00ffff, size: 0.5, transparent: true, opacity: 0.5 });
+const points = new THREE.Points(geometry, material);
+scene.add(points);
 
-function animateParticles() {
-    particleSystem.rotation.y += 0.002;
+camera.position.z = 1000;
+
+function animate() {
+    requestAnimationFrame(animate);
+    points.rotation.y += 0.0005;
     renderer.render(scene, camera);
-    requestAnimationFrame(animateParticles);
 }
-animateParticles();
+animate();
 
-// Fetch scripts
-async function fetchScripts(page = 1) {
-    const loading = document.getElementById('loading');
-    const scriptGrid = document.getElementById('script-grid');
-    const errorMessage = document.getElementById('error-message');
-    loading.style.display = 'block';
-    scriptGrid.innerHTML = '';
-    errorMessage.classList.add('hidden');
-
-    try {
-        console.log(`Fetching scripts for page ${page}...`);
-        const apiUrl = `https://rscripts.net/api/v2/scripts?page=${page}&orderBy=date&sort=desc`;
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
-        const response = await fetch(proxyUrl, { mode: 'cors' });
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const data = await response.json();
-        console.log('API Response:', data);
-        const scripts = data.scripts || [];
-        const maxPages = data.info?.maxPages || 1;
-        if (scripts.length === 0) {
-            throw new Error('No scripts returned from API');
-        }
-        renderScripts(scripts.slice(0, maxPerPage), page, maxPages); // Slice if API returns more than maxPerPage
-    } catch (error) {
-        console.error('Error fetching scripts:', error);
-        errorMessage.textContent = 'Failed to load scripts from ScriptBlox. Showing fallback scripts.';
-        errorMessage.classList.remove('hidden');
-        const start = (page - 1) * maxPerPage;
-        const paginatedScripts = fallbackScripts.slice(start, start + maxPerPage);
-        console.log('Using fallback scripts:', paginatedScripts);
-        renderScripts(paginatedScripts, page, Infinity); // Fallback has no max pages limit
-    } finally {
-        loading.style.display = 'none';
-    }
-}
-
-// Render scripts with GSAP animations
-function renderScripts(scripts, page, maxPages) {
-    const scriptGrid = document.getElementById('script-grid');
-    console.log('Rendering scripts:', scripts);
-    if (!scripts || scripts.length === 0) {
-        scriptGrid.innerHTML = '<p class="text-center text-red-400">No scripts available for this page.</p>';
-        document.getElementById('next-page').disabled = true;
-        return;
-    }
-
-    scripts.forEach((script, index) => {
-        const card = document.createElement('div');
-        card.className = 'script-card p-8';
-        card.innerHTML = `
-            <h3 class="text-2xl font-bold mb-3 glitch">${script.title || 'Untitled Script'}</h3>
-            <p class="text-gray-400 mb-4">${script.description || 'No description available.'}</p>
-            <button class="bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-2 px-6 rounded-lg mr-2 hover:scale-105 transition" onclick="viewScript('${script._id}', '${script.rawScript || ''}')">View</button>
-            <button class="bg-gradient-to-r from-green-600 to-teal-500 text-white py-2 px-6 rounded-lg hover:scale-105 transition" onclick="downloadScript('${script._id}', '${script.rawScript || ''}', '${script.title || 'script'}')">Download</button>
-        `;
-        scriptGrid.appendChild(card);
-
-        // GSAP hover animation
-        gsap.from(card, { opacity: 0, y: 50, duration: 0.5, delay: index * 0.1 });
-        card.addEventListener('mouseenter', () => {
-            gsap.to(card, { scale: 1.05, rotateX: 10, duration: 0.3, ease: 'power2.out' });
-        });
-        card.addEventListener('mouseleave', () => {
-            gsap.to(card, { scale: 1, rotateX: 0, duration: 0.3 });
-        });
-    });
-
-    document.getElementById('page-info').textContent = `Page ${page}`;
-    document.getElementById('prev-page').disabled = page === 1;
-    document.getElementById('next-page').disabled = page >= maxPages || scripts.length < maxPerPage;
-}
-
-// View script
-async function viewScript(scriptId, rawScriptUrl) {
-    console.log(`Viewing script ID: ${scriptId}`);
-    let scriptContent = '';
-    if (rawScriptUrl) {
-        // Fetch from API rawScript URL
-        try {
-            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(rawScriptUrl)}`;
-            const response = await fetch(proxyUrl);
-            if (response.ok) {
-                scriptContent = await response.text();
-            } else {
-                console.error('Failed to fetch script content');
-            }
-        } catch (error) {
-            console.error('Error fetching script:', error);
-        }
-    } else {
-        // Fallback
-        const script = fallbackScripts.find(s => s._id === scriptId) || { script: '' };
-        scriptContent = script.script || '-- Script not found';
-    }
-    editor.setValue(scriptContent);
-    gsap.from('.CodeMirror', { opacity: 0, scale: 0.95, duration: 0.5 });
-}
-
-// Download script
-async function downloadScript(scriptId, rawScriptUrl, title) {
-    console.log(`Downloading script ID: ${scriptId}`);
-    let scriptContent = '';
-    if (rawScriptUrl) {
-        // Fetch from API rawScript URL
-        try {
-            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(rawScriptUrl)}`;
-            const response = await fetch(proxyUrl);
-            if (response.ok) {
-                scriptContent = await response.text();
-            } else {
-                console.error('Failed to fetch script content');
-                return;
-            }
-        } catch (error) {
-            console.error('Error fetching script:', error);
-            return;
-        }
-    } else {
-        // Fallback
-        const script = fallbackScripts.find(s => s._id === scriptId) || { script: '' };
-        scriptContent = script.script;
-        title = script.title || 'script';
-    }
-    const blob = new Blob([scriptContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${title}.lua`;
-    a.click();
-    URL.revokeObjectURL(url);
-}
-
-// Save custom script (placeholder)
-function saveScript() {
-    const scriptContent = editor.getValue();
-    console.log('Saving script:', scriptContent);
-    alert('Script saved! (Requires backend for storage)');
-}
-
-// Download custom script
-function downloadCustomScript() {
-    const scriptContent = editor.getValue();
-    console.log('Downloading custom script');
-    const blob = new Blob([scriptContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'custom-script.lua';
-    a.click();
-    URL.revokeObjectURL(url);
-}
-
-// Pagination handlers
-document.getElementById('next-page').addEventListener('click', () => {
-    currentPage++;
-    console.log(`Navigating to page ${currentPage}`);
-    fetchScripts(currentPage);
+// Resize handler
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+// Code editor (professional Lua editor)
+let editor;
+document.addEventListener('DOMContentLoaded', () => {
+    editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
+        mode: 'lua',
+        lineNumbers: true,
+        theme: 'default', // Change to 'monokai' if you added the theme CSS
+        indentUnit: 4,
+        indentWithTabs: true,
+        extraKeys: { 'Ctrl-Space': 'autocomplete' }
+    });
+
+    // Load saved script if exists
+    const savedScript = localStorage.getItem('customScript');
+    if (savedScript) editor.setValue(savedScript);
+
+    // Scripts section
+    loadScripts();
+});
+
+// Save script function
+function saveScript() {
+    localStorage.setItem('customScript', editor.getValue());
+    alert('Script saved to local storage!');
+}
+
+// Download script function
+function downloadCustomScript() {
+    const code = editor.getValue();
+    if (!code) return alert('No script to download!');
+    const blob = new Blob([code], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'custom_script.lua';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// Dummy scripts data (fallback, inspired by provided docs)
+const fallbackScripts = [
+    {
+        title: 'Delta Executor Mobile Script',
+        description: 'Keyless script for Roblox on mobile. Supports Android/iOS, anti-ban features.',
+        views: 4503,
+        verified: true,
+        script: '-- Delta Executor Mobile Example\nprint("Delta Executor Loaded!")\n-- Add your Roblox hacks here'
+    },
+    {
+        title: 'Xeno Fisch Script',
+        description: 'Obfuscated fishing simulator script for Xeno Executor. Works in all modes.',
+        views: 1582,
+        verified: true,
+        script: 'loadstring(game:HttpGet("https://raw.githubusercontent.com/cayden305/Scripts/refs/heads/main/FischObfuscated.lua"))()'
+    },
+    {
+        title: 'Basic Roblox Hack',
+        description: 'Simple loadstring for general Roblox exploits.',
+        views: 10000,
+        verified: false,
+        script: 'loadstring(game:HttpGet("https://example.com/script.lua"))()'
+    },
+    {
+        title: 'Anti-Detection Script',
+        description: 'Bypass key systems and anti-ban for executors.',
+        views: 5000,
+        verified: true,
+        script: '-- Anti-Ban Example\nprint("Bypassing detection...")'
+    },
+    // Add more as needed for pagination demo
+    { title: 'Script 5', description: 'Another cool script', views: 2000, verified: false, script: 'print("Hello World")' },
+    { title: 'Script 6', description: 'Pro exploit', views: 3000, verified: true, script: 'print("Pro Mode")' },
+    { title: 'Script 7', description: 'Mobile optimized', views: 4000, verified: true, script: 'print("Mobile")' },
+    { title: 'Script 8', description: 'PC version', views: 2500, verified: false, script: 'print("PC")' }
+];
+
+let scripts = [];
+const pageSize = 3; // 3 per page for demo (adjust as needed)
+let currentPage = 1;
+
+// Load scripts (try API, fallback to dummy)
+async function loadScripts() {
+    const loading = document.getElementById('loading');
+    const errorMessage = document.getElementById('error-message');
+    try {
+        // Placeholder API fetch (replace with real if you find one, e.g., 'https://scriptblox.com/api/scripts?page=' + currentPage)
+        // const response = await fetch('https://scriptblox.com/api/scripts?page=' + currentPage);
+        // scripts = await response.json();
+        // For now, use fallback
+        throw new Error('API not available'); // Simulate failure for demo
+    } catch (error) {
+        errorMessage.style.display = 'block';
+        scripts = fallbackScripts;
+    } finally {
+        loading.style.display = 'none';
+        renderScripts(currentPage);
+    }
+}
+
+// Render scripts for current page
+function renderScripts(page) {
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const pageScripts = scripts.slice(start, end);
+    const grid = document.getElementById('script-grid');
+    grid.innerHTML = '';
+    pageScripts.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'bg-gray-800 p-6 rounded-lg hover:bg-gray-700 transition script-card';
+        card.innerHTML = `
+            <h3 class="text-2xl font-bold mb-2 glitch-hover">${s.title}</h3>
+            <p>${s.description}</p>
+            <div class="mt-4">
+                <span class="text-gray-400"><i class="fas fa-eye mr-1"></i>${s.views}</span>
+                ${s.verified ? '<span class="ml-4 text-green-400"><i class="fas fa-check-circle mr-1"></i>Verified</span>' : ''}
+            </div>
+            <button class="mt-4 bg-cyan-600 text-white py-2 px-4 rounded hover:bg-cyan-500 transition" onclick="copyScript('${encodeURIComponent(s.script)}')">Copy Script</button>
+        `;
+        grid.appendChild(card);
+    });
+    document.getElementById('page-info').textContent = `Page ${page}`;
+    document.getElementById('prev-page').disabled = page === 1;
+    document.getElementById('next-page').disabled = end >= scripts.length;
+}
+
+// Pagination events
+document.getElementById('next-page').addEventListener('click', () => {
+    if (currentPage * pageSize < scripts.length) {
+        currentPage++;
+        renderScripts(currentPage);
+    }
+});
 document.getElementById('prev-page').addEventListener('click', () => {
     if (currentPage > 1) {
         currentPage--;
-        console.log(`Navigating to page ${currentPage}`);
-        fetchScripts(currentPage);
+        renderScripts(currentPage);
     }
 });
 
-// Load scripts on page load
-window.onload = () => {
-    console.log('Page loaded, fetching scripts...');
-    fetchScripts(1);
-};
+// Copy script to clipboard
+function copyScript(encodedScript) {
+    const script = decodeURIComponent(encodedScript);
+    navigator.clipboard.writeText(script).then(() => alert('Script copied to clipboard!'));
+}
