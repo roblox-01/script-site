@@ -1,82 +1,95 @@
+/* Custom styles for sick (cyberpunk/neon) and professional look */
+
+/* Font (professional) */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap');
 body {
-    background: linear-gradient(180deg, #0a0a0a, #1a1a1a);
-    overflow-x: hidden;
+    font-family: 'Roboto', sans-serif;
 }
 
+/* Glitch effect (sick) */
 .glitch {
-    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8), 0 0 20px rgba(128, 0, 255, 0.6);
     position: relative;
-    animation: glitch 2s infinite;
-}
-
-@keyframes glitch {
-    0% { transform: translate(0); }
-    2% { transform: translate(-2px, 2px); }
-    4% { transform: translate(2px, -2px); }
-    6% { transform: translate(0); }
+    text-shadow: 
+        0.05em 0 0 rgba(255, 0, 0, 0.75),
+        -0.025em -0.05em 0 rgba(0, 255, 0, 0.75),
+        0.025em 0.05em 0 rgba(0, 0, 255, 0.75);
+    animation: glitch 1s infinite;
 }
 
 .glitch-hover:hover {
-    animation: glitch 0.3s linear;
+    animation: glitch 0.3s infinite;
 }
 
-.discord-btn {
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+@keyframes glitch {
+    0% {
+        text-shadow: 
+            0.05em 0 0 rgba(255, 0, 0, 0.75),
+            -0.05em -0.025em 0 rgba(0, 255, 0, 0.75),
+            -0.025em 0.05em 0 rgba(0, 0, 255, 0.75);
+    }
+    14% {
+        text-shadow: 
+            0.05em 0 0 rgba(255, 0, 0, 0.75),
+            -0.05em -0.025em 0 rgba(0, 255, 0, 0.75),
+            -0.025em 0.05em 0 rgba(0, 0, 255, 0.75);
+    }
+    15% {
+        text-shadow: 
+            -0.05em -0.025em 0 rgba(255, 0, 0, 0.75),
+            0.025em 0.025em 0 rgba(0, 255, 0, 0.75),
+            -0.05em -0.05em 0 rgba(0, 0, 255, 0.75);
+    }
+    49% {
+        text-shadow: 
+            -0.05em -0.025em 0 rgba(255, 0, 0, 0.75),
+            0.025em 0.025em 0 rgba(0, 255, 0, 0.75),
+            -0.05em -0.05em 0 rgba(0, 0, 255, 0.75);
+    }
+    50% {
+        text-shadow: 
+            0.025em 0.05em 0 rgba(255, 0, 0, 0.75),
+            0.05em 0 0 rgba(0, 255, 0, 0.75),
+            0 -0.05em 0 rgba(0, 0, 255, 0.75);
+    }
+    99% {
+        text-shadow: 
+            0.025em 0.05em 0 rgba(255, 0, 0, 0.75),
+            0.05em 0 0 rgba(0, 255, 0, 0.75),
+            0 -0.05em 0 rgba(0, 0, 255, 0.75);
+    }
+    100% {
+        text-shadow: 
+            -0.025em 0 0 rgba(255, 0, 0, 0.75),
+            -0.025em -0.025em 0 rgba(0, 255, 0, 0.75),
+            -0.025em -0.05em 0 rgba(0, 0, 255, 0.75);
+    }
 }
 
+/* Neon shadow (sick + professional) */
+.shadow-neon {
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5), 0 0 20px rgba(255, 0, 255, 0.3);
+}
+
+/* Script cards */
 .script-card {
-    background: linear-gradient(135deg, #2d2d2d, #1a1a1a);
-    border: 2px solid #00f6ff;
-    border-radius: 12px;
-    transition: transform 0.3s ease;
-    position: relative;
-    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .script-card:hover {
-    transform: scale(1.05) rotateX(5deg);
-    box-shadow: 0 0 30px rgba(0, 255, 255, 0.7);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 255, 255, 0.4);
 }
 
-.script-card::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(0, 255, 255, 0.3), transparent);
-    transform: rotate(45deg);
-    transition: all 0.5s ease;
-}
-
-.script-card:hover::before {
-    transform: rotate(45deg) translate(100%, 100%);
-}
-
-#code-editor {
-    height: 600px;
-    border: 3px solid #00f6ff;
-    border-radius: 12px;
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
-}
-
+/* CodeMirror overrides for professional look */
 .CodeMirror {
-    border-radius: 12px;
-    font-size: 1.2rem;
+    border: 1px solid #cyan-500;
+    height: 400px;
     background: #1a1a1a;
+    color: #fff;
+    border-radius: 0.5rem;
 }
 
-.watermark {
-    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-    transition: all 0.3s ease;
-}
-
-.watermark:hover {
-    color: #00f6ff;
-    transform: scale(1.1);
-}
-
-#error-message {
-    margin-bottom: 1rem;
+/* Discord button hover */
+.discord-btn:hover {
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
 }
