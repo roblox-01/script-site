@@ -7,6 +7,7 @@ body {
     background-color: #000 !important;
     color: #fff !important;
     overflow-x: hidden !important;
+    min-height: 100vh;
 }
 
 /* Particle canvas */
@@ -14,20 +15,29 @@ body {
     position: fixed !important;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 100vw !important;
+    height: 100vh !important;
     z-index: -10 !important;
     background: transparent !important;
 }
 
+/* Navigation */
+nav {
+    background-color: rgba(17, 24, 39, 0.8) !important; /* Tailwind bg-gray-900 with opacity */
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 50 !important;
+    padding: 1rem !important;
+}
+
 /* Glitch effect */
 .glitch {
-    position: relative;
+    position: relative !important;
     text-shadow: 
         0.05em 0 0 rgba(255, 0, 0, 0.75),
         -0.025em -0.05em 0 rgba(0, 255, 0, 0.75),
         0.025em 0.05em 0 rgba(0, 0, 255, 0.75) !important;
-    animation: glitch 1s infinite;
+    animation: glitch 1s infinite !important;
 }
 
 .glitch-hover:hover {
@@ -70,6 +80,8 @@ body {
 .script-card {
     transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease !important;
     background-color: #1f2937 !important; /* Tailwind bg-gray-800 */
+    padding: 1rem !important;
+    border-radius: 0.5rem !important;
 }
 
 .script-card:hover {
@@ -79,7 +91,7 @@ body {
 }
 
 /* Editor styling (Ace and fallback) */
-.CodeMirror, #code-editor {
+.CodeMirror, #code-editor, #ace-editor {
     border: 2px solid #00d7ff !important;
     min-height: 400px !important;
     background: #1a1a1a !important;
@@ -89,22 +101,17 @@ body {
     width: 100% !important;
     padding: 10px !important;
     box-sizing: border-box !important;
-}
-
-/* Ensure Ace Editor container is styled */
-#ace-editor {
-    min-height: 400px !important;
-    background: #1a1a1a !important;
-    border: 2px solid #00d7ff !important;
-    border-radius: 0.5rem !important;
-    position: relative !important;
-    z-index: 10 !important;
+    display: block !important; /* Ensure visibility */
 }
 
 /* Discord button */
 .discord-btn {
     transition: transform 0.3s ease, box-shadow 0.3s ease !important;
     background: linear-gradient(to right, #06b6d4, #7c3aed) !important; /* Matches Tailwind from-cyan-500 to-purple-500 */
+    padding: 0.75rem 2rem !important;
+    border-radius: 0.5rem !important;
+    color: #fff !important;
+    text-decoration: none !important;
 }
 
 .discord-btn:hover {
@@ -115,10 +122,15 @@ body {
 /* Copy script button */
 .copy-script-btn {
     transition: background-color 0.3s ease !important;
+    background-color: #0891b2 !important; /* Tailwind bg-cyan-600 */
+    padding: 0.5rem 1rem !important;
+    border-radius: 0.25rem !important;
+    color: #fff !important;
+    border: none !important;
 }
 
 .copy-script-btn:hover {
-    background-color: #06b6d4 !important; /* Matches Tailwind hover:bg-cyan-500 */
+    background-color: #06b6d4 !important; /* Tailwind hover:bg-cyan-500 */
 }
 
 /* Noscript warning */
@@ -131,6 +143,7 @@ body {
     max-width: 600px !important;
     text-align: center !important;
     animation: glitch 1s infinite !important;
+    display: block !important; /* Ensure visibility */
 }
 
 .noscript-warning p:first-child {
@@ -151,12 +164,17 @@ body {
     padding: 1rem !important;
     margin-bottom: 1rem !important;
     color: #ff3333 !important;
+    display: block !important; /* Ensure visibility */
 }
 
 /* Watermark (ShadowT3ch) */
 .watermark {
     transition: color 0.3s ease !important;
     color: #06b6d4 !important; /* Matches Tailwind text-cyan-400 */
+    position: fixed !important;
+    bottom: 1rem !important;
+    right: 1rem !important;
+    font-size: 0.75rem !important;
 }
 
 .watermark:hover {
@@ -166,12 +184,20 @@ body {
 /* Loading spinner */
 .fa-spinner {
     animation: spin 1s linear infinite !important;
+    font-size: 2rem !important;
+    color: #06b6d4 !important; /* Matches Tailwind text-cyan-400 */
 }
 
 @keyframes spin {
     100% {
         transform: rotate(360deg);
     }
+}
+
+/* Section containers */
+section {
+    margin: 2rem 0 !important;
+    padding: 2rem !important;
 }
 
 /* Accessibility: Disable animations for reduced motion */
