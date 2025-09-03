@@ -6,9 +6,9 @@
     <title>TheScriptSite - Next-Gen Roblox Scripts Hub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.css"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/theme/monokai.min.css"/>
     <link rel="stylesheet" href="https://script-site.onrender.com/styles.css">
+    <!-- Ace Editor CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.33.2/ace.js" integrity="sha512-0Q0c6K5B3G1WVKNW3Mt1G7Ab3DyEh+/Hm4B2wWj0v3aO9Q2f0DGGjfxc3Nufy0qA0qTjS12VIXuH8Ji77H64K7g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body class="bg-black text-white overflow-x-hidden">
     <noscript>
@@ -55,7 +55,7 @@
 
     <section id="create" class="container mx-auto my-16 bg-opacity-90 bg-gray-900 p-10 rounded-2xl shadow-neon">
         <h2 class="text-4xl font-bold text-center mb-12 glitch">Create Your Script</h2>
-        <textarea id="code-editor" class="w-full rounded-2xl bg-[#1a1a1a] text-white border-2 border-[#00d7ff] p-4" style="min-height: 400px; resize: vertical; pointer-events: auto; z-index: 10;"></textarea>
+        <div id="code-editor" class="w-full rounded-2xl bg-[#1a1a1a] text-white border-2 border-[#00d7ff] p-4" style="min-height: 400px;"></div>
         <div class="text-center mt-6">
             <button id="save-script-btn" class="bg-gradient-to-r from-purple-600 to-cyan-500 text-white py-3 px-8 rounded-lg mr-4 hover:scale-105 transition">Save Script</button>
             <button id="download-script-btn" class="bg-gradient-to-r from-green-600 to-teal-500 text-white py-3 px-8 rounded-lg hover:scale-105 transition">Download Script</button>
@@ -93,11 +93,21 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/mode/lua/lua.min.js"></script>
-    <!-- Fallback CDN for CodeMirror -->
-    <script>if (!window.CodeMirror) { document.write('<script src="https://unpkg.com/codemirror@5.65.18/lib/codemirror.js"><\/script>'); }</script>
-    <script>if (!window.CodeMirror) { document.write('<script src="https://unpkg.com/codemirror@5.65.18/mode/lua/lua.js"><\/script>'); }</script>
     <script src="https://script-site.onrender.com/scripts.js"></script>
+    <script>
+        // Initialize Ace Editor
+        const editor = ace.edit("code-editor");
+        editor.setTheme("ace/theme/monokai");
+        editor.session.setMode("ace/mode/lua");
+        editor.setOptions({
+            fontSize: "14px",
+            showPrintMargin: false,
+            enableBasicAutocompletion: true,
+            enableSnippets: true,
+            enableLiveAutocompletion: true
+        });
+        // Optional: Set default content
+        editor.setValue("-- Write your Lua script here\nprint('Hello, Roblox!')");
+    </script>
 </body>
 </html>
