@@ -32,7 +32,7 @@ window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// Fallback scripts (6 scripts)
+// Fallback scripts
 const fallbackScripts = [
     {
         _id: "68b60913c5aae50f0bce4671",
@@ -90,45 +90,83 @@ const fallbackScripts = [
     }
 ];
 
-let editor;
 let currentPage = 1;
 let maxPages = 1;
 const pageSize = 6;
 
-// Initialize CodeMirror with retry
-function initializeCodeMirror(attempts = 5, delay = 500) {
-    function tryInit(triesLeft) {
-        try {
-            if (typeof window.CodeMirror !== 'object' || !window.CodeMirror.fromTextArea) {
-                throw new Error('CodeMirror or fromTextArea not loaded');
-            }
-            const codeEditor = document.getElementById('code-editor');
-            if (!codeEditor) throw new Error('Code editor textarea not found');
-            editor = window.CodeMirror.fromTextArea(codeEditor, {
-                mode: 'text/x-lua',
-                lineNumbers: true,
-                theme: 'monokai',
-                indentUnit: 4,
-                indentWithTabs: true,
-                extraKeys: { 'Ctrl-Space': 'autocomplete' }
-            });
-            const savedScript = localStorage.getItem('customScript');
-            if (savedScript) editor.setValue(savedScript);
-            console.log('CodeMirror initialized');
-            return true;
-        } catch (error) {
-            if (triesLeft <= 1) {
-                console.error('CodeMirror init failed after retries:', error);
-                document.getElementById('error-message').textContent = 'Editor failed to load. You can still browse scripts.';
-                document.getElementById('error-message').style.display = 'block';
-                return false;
-            }
-            console.log(`Retrying CodeMirror init (${triesLeft - 1} attempts left)...`);
-            setTimeout(() => tryInit(triesLeft - 1), delay);
-            return false;
-        }
+// Initialize Custom Text Editor
+function initializeCustomEditor() {
+    const editor = document.getElementById('code-editor');
+    if (!editor) {
+        console.error('Code editor div not found');
+        document.getElementById('error-message').textContent = 'Editor failed to load. You can still browse scripts.';
+        document.getElementById('error-message').style.display = 'block';
+        return null;
     }
-    return tryInit(attempts);
+
+    // Ensure editor is contenteditable
+    editor.setAttribute('contenteditable', 'true');
+    
+    // Set initial content if none exists
+    if (!editor.innerText.trim()) {
+        editor.innerText = '-- Write your Lua script here\nprint("Hello, Roblox!")';
+    }
+
+    // Lua Syntax Highlighting
+    function highlightLua() {
+        let code = editor.innerText;
+        // Escape HTML to prevent injection
+        code = code.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        // Define Lua keywords
+        const keywords = ["and", "break", "do", "else", "elseif", "end", "false", "for", "function", "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true", "until", "while"];
+        // Highlight keywords
+        keywords.forEach(keyword => {
+            const regex = new RegExp(`\\b${keyword}\\b`, "g");
+            code = code.replace(regex, `<span class="lua-keyword">${keyword}</span>`);
+        });
+        // Highlight strings (single and double quotes)
+        code = code.replace(/(["'])(.*?)\1/g, `<span class="lua-string">$1$2$1</span>`);
+        // Highlight comments
+        code = code.replace(/--[^\n]*/g, `<span class="lua-comment">$&</span>`);
+        // Highlight numbers
+        code = code.replace(/\b\d+\.?\d*\b/g, `<span class="lua-number">$&</span>`);
+        // Highlight function names (basic, after 'function' keyword)
+        code = code.replace(/function\s+([a-zA-Z_][a-zA-Z0-9_]*)/g, `function <span class="lua-function">$1</span>`);
+        editor.innerHTML = code;
+    }
+
+    // Run highlighting on input with debounce
+    let timeout;
+    editor.addEventListener('input', () => {
+        clearTimeout(timeout);
+        timeout = setTimeout(highlightLua, 100); // Debounce for performance
+    });
+    // Run highlighting on paste to handle pasted content
+    editor.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData('text');
+        document.execCommand('insertText', false, text);
+        highlightLua();
+    });
+    // Handle Enter key to insert newlines correctly
+    editor.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            document.execCommand('insertText', false, '\n');
+            highlightLua();
+        }
+    });
+    // Initial highlight
+    highlightLua();
+
+    // Load saved script from localStorage
+    const savedScript = localStorage.getItem('customScript');
+    if (savedScript) {
+        editor.innerText = savedScript;
+        highlightLua();
+    }
+
+    return editor;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -143,20 +181,21 @@ document.addEventListener('DOMContentLoaded', () => {
         renderScripts(fallbackScripts, currentPage);
     }
 
-    // Initialize CodeMirror and buttons
+    // Initialize Custom Editor and buttons
     try {
-        if (initializeCodeMirror()) {
-            // Bind buttons only if editor initializes
+        const editor = initializeCustomEditor();
+        if (editor) {
+            // Bind buttons
             const saveButton = document.getElementById('save-script-btn');
             const downloadButton = document.getElementById('download-script-btn');
             if (saveButton) {
-                saveButton.addEventListener('click', saveScript);
+                saveButton.addEventListener('click', () => saveScript(editor));
                 console.log('Save button bound');
             } else {
                 console.error('Save button not found');
             }
             if (downloadButton) {
-                downloadButton.addEventListener('click', downloadCustomScript);
+                downloadButton.addEventListener('click', () => downloadCustomScript(editor));
                 console.log('Download button bound');
             } else {
                 console.error('Download button not found');
@@ -178,10 +217,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Save script
-function saveScript() {
+function saveScript(editor) {
     try {
         if (!editor) throw new Error('Editor not initialized');
-        const script = editor.getValue();
+        const script = editor.innerText.trim();
+        if (!script) {
+            alert('No script content to save!');
+            console.warn('Save script: Empty content');
+            return;
+        }
         localStorage.setItem('customScript', script);
         alert('Script saved to local storage!');
         console.log('Script saved:', script.substring(0, 50) + '...');
@@ -192,12 +236,13 @@ function saveScript() {
 }
 
 // Download script
-function downloadCustomScript() {
+function downloadCustomScript(editor) {
     try {
         if (!editor) throw new Error('Editor not initialized');
-        const code = editor.getValue();
+        const code = editor.innerText.trim();
         if (!code) {
-            alert('No script to download!');
+            alert('No script content to download!');
+            console.warn('Download script: Empty content');
             return;
         }
         const blob = new Blob([code], { type: 'text/plain' });
@@ -207,7 +252,7 @@ function downloadCustomScript() {
         a.download = 'custom_script.lua';
         a.click();
         URL.revokeObjectURL(url);
-        console.log('Script downloaded');
+        console.log('Script downloaded, length:', code.length);
     } catch (error) {
         console.error('Download script error:', error);
         alert('Error downloading script: Editor may not have loaded.');
